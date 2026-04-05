@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
+import { checkPassword } from '@/lib/auth';
 import type { CreatePostPayload } from '@/lib/types';
 
 export async function GET() {
@@ -11,8 +12,12 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const body: CreatePostPayload = await req.json();
-  const { title, model_name, rounds } = body;
+  const body: CreatePostPayload & { password?: string } = await req.json();
+  const { title, model_name, rounds, password } = body;
+
+  if (!checkPassword(password)) {
+    return NextResponse.json({ error: 'パスワードが違います' }, { status: 401 });
+  }
 
   if (!title?.trim() || !model_name?.trim() || !rounds?.length) {
     return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
