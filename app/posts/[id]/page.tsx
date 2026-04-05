@@ -1,5 +1,7 @@
 import { getDb } from '@/lib/db';
 import type { PostWithMessages } from '@/lib/types';
+import type { MaskRule } from '@/lib/masks';
+import { applyMasks } from '@/lib/masks';
 import MaskedChatLog from '@/components/MaskedChatLog';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -22,7 +24,14 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
     .prepare('SELECT * FROM messages WHERE post_id = ? ORDER BY position')
     .all(Number(id)) as PostWithMessages['messages'];
 
-  const fullPost: PostWithMessages = { ...post, messages };
+  const masks = db.prepare('SELECT * FROM masks ORDER BY position').all() as MaskRule[];
+
+  const fullPost: PostWithMessages = {
+    ...post,
+    title: applyMasks(post.title, masks),
+    model_name: applyMasks(post.model_name, masks),
+    messages: messages.map((m) => ({ ...m, content: applyMasks(m.content, masks) })),
+  };
 
   return (
     <article>
@@ -34,10 +43,10 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
 
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">{post.title}</h1>
+          <h1 className="text-xl font-semibold text-gray-900">{fullPost.title}</h1>
           <div className="mt-1 flex items-center gap-2 text-xs text-gray-400">
             <span className="bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
-              {post.model_name}
+              {fullPost.model_name}
             </span>
             <span>{formatDate(post.created_at)}</span>
           </div>
