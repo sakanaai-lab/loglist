@@ -1,6 +1,6 @@
 import { getDb } from '@/lib/db';
 import type { PostWithMessages } from '@/lib/types';
-import ChatLog from '@/components/ChatLog';
+import MaskedChatLog from '@/components/MaskedChatLog';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import DeleteButton from '@/components/DeleteButton';
@@ -46,7 +46,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       </div>
 
       <div className="border-t border-gray-100 pt-6">
-        <ChatLog post={fullPost} />
+        <MaskedChatLog post={fullPost} />
       </div>
     </article>
   );

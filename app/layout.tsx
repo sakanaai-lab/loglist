@@ -20,12 +20,20 @@ export default function RootLayout({
             <Link href="/" className="text-lg font-semibold tracking-tight">
               loglist
             </Link>
-            <Link
-              href="/posts/new"
-              className="bg-black text-white text-sm px-4 py-1.5 rounded-full hover:bg-gray-800 transition-colors"
-            >
-              投稿する
-            </Link>
+            <div className="flex items-center gap-3">
+              <Link
+                href="/settings"
+                className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                マスク
+              </Link>
+              <Link
+                href="/posts/new"
+                className="bg-black text-white text-sm px-4 py-1.5 rounded-full hover:bg-gray-800 transition-colors"
+              >
+                投稿する
+              </Link>
+            </div>
           </div>
         </header>
         <main className="max-w-2xl mx-auto px-4 py-8">{children}</main>
