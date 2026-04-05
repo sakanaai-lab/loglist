@@ -12,6 +12,7 @@ export default function NewPostForm() {
   const router = useRouter();
   const [title, setTitle] = useState('');
   const [modelName, setModelName] = useState('');
+  const [password, setPassword] = useState('');
   const [rounds, setRounds] = useState<Round[]>([{ user: '', ai: '' }]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -34,6 +35,7 @@ export default function NewPostForm() {
 
     if (!title.trim()) return setError('タイトルを入力してください');
     if (!modelName.trim()) return setError('モデル名を入力してください');
+    if (!password) return setError('パスワードを入力してください');
     for (let i = 0; i < rounds.length; i++) {
       if (!rounds[i].user.trim() || !rounds[i].ai.trim()) {
         return setError(`ラリー${i + 1}のメッセージが空です`);
@@ -45,8 +47,18 @@ export default function NewPostForm() {
       const res = await fetch('/api/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: title.trim(), model_name: modelName.trim(), rounds }),
+        body: JSON.stringify({
+          title: title.trim(),
+          model_name: modelName.trim(),
+          rounds,
+          password,
+        }),
       });
+      if (res.status === 401) {
+        setError('パスワードが違います');
+        setSubmitting(false);
+        return;
+      }
       if (!res.ok) throw new Error('投稿に失敗しました');
       const { post } = await res.json();
       router.push(`/posts/${post.id}`);
@@ -134,6 +146,17 @@ export default function NewPostForm() {
       >
         ＋ ラリーを追加
       </button>
+
+      {/* Password */}
+      <div className="border-t border-gray-100 pt-4">
+        <input
+          type="password"
+          placeholder="管理者パスワード"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400 placeholder-gray-300"
+        />
+      </div>
 
       {/* Error */}
       {error && <p className="text-sm text-red-500">{error}</p>}
