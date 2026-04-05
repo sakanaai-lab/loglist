@@ -1,69 +1,91 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { loadMasks, saveMasks, type MaskRule } from '@/lib/masks';
+
+interface Rule {
+  tempId: string;
+  from_text: string;
+  to_text: string;
+}
 
 function randomId() {
   return Math.random().toString(36).slice(2);
 }
 
 export default function MaskSettings() {
-  const [rules, setRules] = useState<MaskRule[]>([]);
-  const [saved, setSaved] = useState(false);
+  const [rules, setRules] = useState<Rule[]>([]);
+  const [password, setPassword] = useState('');
+  const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
-    setRules(loadMasks());
+    fetch('/api/masks')
+      .then((r) => r.json())
+      .then((data) => {
+        setRules(
+          data.masks.map((m: { from_text: string; to_text: string }) => ({
+            tempId: randomId(),
+            from_text: m.from_text,
+            to_text: m.to_text,
+          }))
+        );
+      });
   }, []);
 
   function addRule() {
-    setRules((prev) => [...prev, { id: randomId(), from: '', to: '' }]);
+    setRules((prev) => [...prev, { tempId: randomId(), from_text: '', to_text: '' }]);
   }
 
-  function updateRule(id: string, field: 'from' | 'to', value: string) {
-    setRules((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, [field]: value } : r))
-    );
+  function updateRule(tempId: string, field: 'from_text' | 'to_text', value: string) {
+    setRules((prev) => prev.map((r) => (r.tempId === tempId ? { ...r, [field]: value } : r)));
   }
 
-  function removeRule(id: string) {
-    setRules((prev) => prev.filter((r) => r.id !== id));
+  function removeRule(tempId: string) {
+    setRules((prev) => prev.filter((r) => r.tempId !== tempId));
   }
 
-  function handleSave() {
-    saveMasks(rules);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  async function handleSave() {
+    if (!password) { setErrorMsg('パスワードを入力してください'); return; }
+    setStatus('saving');
+    setErrorMsg('');
+    const res = await fetch('/api/masks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password, rules: rules.map(({ from_text, to_text }) => ({ from_text, to_text })) }),
+    });
+    if (res.status === 401) {
+      setErrorMsg('パスワードが違います');
+      setStatus('error');
+      return;
+    }
+    setStatus('saved');
+    setTimeout(() => setStatus('idle'), 2000);
   }
 
   return (
     <div className="space-y-4">
       {rules.length === 0 && (
-        <p className="text-gray-400 text-sm py-4 text-center">
-          まだルールがありません
-        </p>
+        <p className="text-gray-400 text-sm py-4 text-center">まだルールがありません</p>
       )}
 
       {rules.map((rule) => (
-        <div key={rule.id} className="flex items-center gap-2">
+        <div key={rule.tempId} className="flex items-center gap-2">
           <input
             type="text"
-            placeholder="元の単語"
-            value={rule.from}
-            onChange={(e) => updateRule(rule.id, 'from', e.target.value)}
+            placeholder="元の名前（本名）"
+            value={rule.from_text}
+            onChange={(e) => updateRule(rule.tempId, 'from_text', e.target.value)}
             className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-base focus:outline-none focus:border-gray-400"
           />
           <span className="text-gray-400">→</span>
           <input
             type="text"
-            placeholder="置き換え後"
-            value={rule.to}
-            onChange={(e) => updateRule(rule.id, 'to', e.target.value)}
+            placeholder="表示する名前"
+            value={rule.to_text}
+            onChange={(e) => updateRule(rule.tempId, 'to_text', e.target.value)}
             className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-base focus:outline-none focus:border-gray-400"
           />
-          <button
-            onClick={() => removeRule(rule.id)}
-            className="text-red-400 hover:text-red-600 px-1 text-lg"
-          >
+          <button onClick={() => removeRule(rule.tempId)} className="text-red-400 hover:text-red-600 px-1 text-lg">
             ×
           </button>
         </div>
@@ -76,12 +98,23 @@ export default function MaskSettings() {
         ＋ ルールを追加
       </button>
 
-      <button
-        onClick={handleSave}
-        className="w-full bg-black text-white py-3 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors"
-      >
-        {saved ? '保存しました！' : '保存する'}
-      </button>
+      <div className="border-t border-gray-100 pt-4">
+        <input
+          type="password"
+          placeholder="管理者パスワード"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-base focus:outline-none focus:border-gray-400 mb-3"
+        />
+        {errorMsg && <p className="text-sm text-red-500 mb-3">{errorMsg}</p>}
+        <button
+          onClick={handleSave}
+          disabled={status === 'saving'}
+          className="w-full bg-black text-white py-3 rounded-xl text-sm font-medium hover:bg-gray-800 disabled:opacity-50 transition-colors"
+        >
+          {status === 'saving' ? '保存中...' : status === 'saved' ? '保存しました！' : '保存する'}
+        </button>
+      </div>
     </div>
   );
 }

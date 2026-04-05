@@ -32,6 +32,13 @@ export function getDb(): Database.Database {
       content  TEXT    NOT NULL,
       position INTEGER NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS masks (
+      id        INTEGER PRIMARY KEY AUTOINCREMENT,
+      from_text TEXT NOT NULL,
+      to_text   TEXT NOT NULL,
+      position  INTEGER NOT NULL DEFAULT 0
+    );
   `);
 
   return db;
