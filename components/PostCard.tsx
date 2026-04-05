@@ -14,10 +14,10 @@ export default function PostCard({ post }: { post: Post }) {
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
-          <h2 className="font-medium text-gray-900 group-hover:text-black truncate">
+          <h2 className="font-medium text-lg text-gray-900 group-hover:text-black truncate">
             {post.title}
           </h2>
-          <div className="mt-1 flex items-center gap-2 text-xs text-gray-400">
+          <div className="mt-1 flex items-center gap-2 text-sm text-gray-400">
             <span className="bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
               {post.model_name}
             </span>
