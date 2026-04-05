@@ -23,7 +23,7 @@ export default function AiMessage({
   return (
     <div>
       <div className="text-xs text-gray-400 font-semibold mb-1">{modelName}</div>
-      <div className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
+      <div className="text-base text-gray-800 whitespace-pre-wrap leading-relaxed">
         {renderContent(content)}
       </div>
     </div>

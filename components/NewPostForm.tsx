@@ -88,7 +88,7 @@ export default function NewPostForm() {
           placeholder="モデル名（例：GPT-4o, Claude 3.5）"
           value={modelName}
           onChange={(e) => setModelName(e.target.value)}
-          className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400 placeholder-gray-300"
+          className="w-full text-base border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400 placeholder-gray-300"
         />
       </div>
 
@@ -119,7 +119,7 @@ export default function NewPostForm() {
                 placeholder="ユーザーのメッセージ..."
                 value={round.user}
                 onChange={(e) => updateRound(i, 'user', e.target.value)}
-                className="w-full text-sm bg-transparent focus:outline-none placeholder-gray-300 resize-none"
+                className="w-full text-base bg-transparent focus:outline-none placeholder-gray-300 resize-none"
               />
             </div>
 
@@ -131,7 +131,7 @@ export default function NewPostForm() {
                 placeholder="AIの返答..."
                 value={round.ai}
                 onChange={(e) => updateRound(i, 'ai', e.target.value)}
-                className="w-full text-sm bg-transparent focus:outline-none placeholder-gray-300 resize-none"
+                className="w-full text-base bg-transparent focus:outline-none placeholder-gray-300 resize-none"
               />
             </div>
           </div>
@@ -154,7 +154,7 @@ export default function NewPostForm() {
           placeholder="管理者パスワード"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400 placeholder-gray-300"
+          className="w-full text-base border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-gray-400 placeholder-gray-300"
         />
       </div>
 
