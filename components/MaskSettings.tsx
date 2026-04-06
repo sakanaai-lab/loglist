@@ -65,7 +65,7 @@ export default function MaskSettings() {
   return (
     <div className="space-y-4">
       {rules.length === 0 && (
-        <p className="text-gray-400 text-sm py-4 text-center">まだルールがありません</p>
+        <p className="text-slate-400 text-sm py-4 text-center">まだルールがありません</p>
       )}
 
       {rules.map((rule) => (
@@ -75,15 +75,15 @@ export default function MaskSettings() {
             placeholder="元の名前（本名）"
             value={rule.from_text}
             onChange={(e) => updateRule(rule.tempId, 'from_text', e.target.value)}
-            className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-base focus:outline-none focus:border-gray-400"
+            className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-base focus:outline-none focus:border-slate-400"
           />
-          <span className="text-gray-400">→</span>
+          <span className="text-slate-400">→</span>
           <input
             type="text"
             placeholder="表示する名前"
             value={rule.to_text}
             onChange={(e) => updateRule(rule.tempId, 'to_text', e.target.value)}
-            className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-base focus:outline-none focus:border-gray-400"
+            className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-base focus:outline-none focus:border-slate-400"
           />
           <button onClick={() => removeRule(rule.tempId)} className="text-red-400 hover:text-red-600 px-1 text-lg">
             ×
@@ -93,7 +93,7 @@ export default function MaskSettings() {
 
       <button
         onClick={addRule}
-        className="w-full border-2 border-dashed border-gray-200 rounded-xl py-3 text-sm text-gray-400 hover:border-gray-300 hover:text-gray-500 transition-colors"
+        className="w-full border-2 border-dashed border-slate-200 rounded-xl py-3 text-sm text-slate-400 hover:border-slate-300 hover:text-slate-500 transition-colors"
       >
         ＋ ルールを追加
       </button>
@@ -104,13 +104,13 @@ export default function MaskSettings() {
           placeholder="管理者パスワード"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-base focus:outline-none focus:border-gray-400 mb-3"
+          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-base focus:outline-none focus:border-slate-400 mb-3"
         />
         {errorMsg && <p className="text-sm text-red-500 mb-3">{errorMsg}</p>}
         <button
           onClick={handleSave}
           disabled={status === 'saving'}
-          className="w-full bg-black text-white py-3 rounded-xl text-sm font-medium hover:bg-gray-800 disabled:opacity-50 transition-colors"
+          className="w-full bg-slate-700 text-white py-3 rounded-xl text-sm font-medium hover:bg-slate-800 disabled:opacity-50 transition-colors"
         >
           {status === 'saving' ? '保存中...' : status === 'saved' ? '保存しました！' : '保存する'}
         </button>

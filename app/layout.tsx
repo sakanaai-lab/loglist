@@ -14,26 +14,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja">
-      <body className="min-h-screen bg-white text-gray-900">
-        <header className="border-b border-gray-200 px-4 py-3">
+      <body className="min-h-screen bg-slate-100 text-slate-800">
+        <header className="bg-slate-200 border-b border-slate-300 px-4 py-3">
           <div className="max-w-2xl mx-auto flex items-center justify-between">
-            <Link href="/" className="text-lg font-semibold tracking-tight">
+            <Link href="/" className="text-lg font-semibold tracking-tight text-slate-700">
               loglist
             </Link>
-            <div className="flex items-center gap-3">
-              <Link
-                href="/settings"
-                className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                マスク
-              </Link>
-              <Link
-                href="/posts/new"
-                className="bg-black text-white text-sm px-4 py-1.5 rounded-full hover:bg-gray-800 transition-colors"
-              >
-                投稿する
-              </Link>
-            </div>
           </div>
         </header>
         <main className="max-w-2xl mx-auto px-4 py-8">{children}</main>
