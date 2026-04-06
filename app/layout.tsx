@@ -7,6 +7,8 @@ export const metadata: Metadata = {
   description: 'LLMとのチャットログを記録・共有するサイト',
 };
 
+const isPrivate = process.env.PRIVATE_MODE === 'true';
+
 export default function RootLayout({
   children,
 }: {
@@ -14,11 +16,20 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja">
-      <body className="min-h-screen bg-slate-100 text-slate-800">
-        <header className="bg-slate-200 border-b border-slate-300 px-4 py-3">
+      <body className={isPrivate
+        ? 'min-h-screen bg-gray-900 text-gray-100'
+        : 'min-h-screen bg-slate-100 text-slate-800'
+      }>
+        <header className={isPrivate
+          ? 'bg-gray-800 border-b border-gray-700 px-4 py-3'
+          : 'bg-slate-200 border-b border-slate-300 px-4 py-3'
+        }>
           <div className="max-w-2xl mx-auto flex items-center justify-between">
-            <Link href="/" className="text-lg font-semibold tracking-tight text-slate-700">
-              loglist
+            <Link href="/" className={isPrivate
+              ? 'text-lg font-semibold tracking-tight text-gray-100'
+              : 'text-lg font-semibold tracking-tight text-slate-700'
+            }>
+              loglist {isPrivate && <span className="text-xs text-gray-400 ml-1">private</span>}
             </Link>
           </div>
         </header>
