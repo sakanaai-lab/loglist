@@ -50,8 +50,14 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
         </div>
       </div>
 
-      <div className="border-t border-gray-100 pt-6">
+      <div className="border-t border-slate-200 pt-6">
         <MaskedChatLog post={fullPost} />
+      </div>
+
+      <div className="mt-10 pt-6 border-t border-slate-200">
+        <Link href="/" className="text-sm text-slate-400 hover:text-slate-600">
+          ← 一覧へ戻る
+        </Link>
       </div>
     </article>
   );
