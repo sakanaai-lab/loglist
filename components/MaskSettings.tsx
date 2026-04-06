@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 interface Rule {
   tempId: string;
@@ -13,24 +13,33 @@ function randomId() {
 }
 
 export default function MaskSettings() {
-  const [rules, setRules] = useState<Rule[]>([]);
   const [password, setPassword] = useState('');
-  const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [rules, setRules] = useState<Rule[]>([]);
+  const [unlocked, setUnlocked] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'loading' | 'saving' | 'saved' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
 
-  useEffect(() => {
-    fetch('/api/masks')
-      .then((r) => r.json())
-      .then((data) => {
-        setRules(
-          data.masks.map((m: { from_text: string; to_text: string }) => ({
-            tempId: randomId(),
-            from_text: m.from_text,
-            to_text: m.to_text,
-          }))
-        );
-      });
-  }, []);
+  async function handleUnlock() {
+    if (!password) return;
+    setStatus('loading');
+    setErrorMsg('');
+    const res = await fetch(`/api/masks?password=${encodeURIComponent(password)}`);
+    if (res.status === 401) {
+      setErrorMsg('パスワードが違います');
+      setStatus('error');
+      return;
+    }
+    const data = await res.json();
+    setRules(
+      data.masks.map((m: { from_text: string; to_text: string }) => ({
+        tempId: randomId(),
+        from_text: m.from_text,
+        to_text: m.to_text,
+      }))
+    );
+    setUnlocked(true);
+    setStatus('idle');
+  }
 
   function addRule() {
     setRules((prev) => [...prev, { tempId: randomId(), from_text: '', to_text: '' }]);
@@ -45,13 +54,15 @@ export default function MaskSettings() {
   }
 
   async function handleSave() {
-    if (!password) { setErrorMsg('パスワードを入力してください'); return; }
     setStatus('saving');
     setErrorMsg('');
     const res = await fetch('/api/masks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password, rules: rules.map(({ from_text, to_text }) => ({ from_text, to_text })) }),
+      body: JSON.stringify({
+        password,
+        rules: rules.map(({ from_text, to_text }) => ({ from_text, to_text })),
+      }),
     });
     if (res.status === 401) {
       setErrorMsg('パスワードが違います');
@@ -62,6 +73,31 @@ export default function MaskSettings() {
     setTimeout(() => setStatus('idle'), 2000);
   }
 
+  // パスワード入力画面
+  if (!unlocked) {
+    return (
+      <div className="space-y-3">
+        <input
+          type="password"
+          placeholder="管理者パスワード"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleUnlock()}
+          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-base focus:outline-none focus:border-slate-400"
+        />
+        {errorMsg && <p className="text-sm text-red-500">{errorMsg}</p>}
+        <button
+          onClick={handleUnlock}
+          disabled={status === 'loading'}
+          className="w-full bg-slate-700 text-white py-3 rounded-xl text-sm font-medium hover:bg-slate-800 disabled:opacity-50 transition-colors"
+        >
+          {status === 'loading' ? '確認中...' : '開く'}
+        </button>
+      </div>
+    );
+  }
+
+  // ルール編集画面
   return (
     <div className="space-y-4">
       {rules.length === 0 && (
@@ -98,14 +134,7 @@ export default function MaskSettings() {
         ＋ ルールを追加
       </button>
 
-      <div className="border-t border-gray-100 pt-4">
-        <input
-          type="password"
-          placeholder="管理者パスワード"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-base focus:outline-none focus:border-slate-400 mb-3"
-        />
+      <div className="border-t border-slate-100 pt-4">
         {errorMsg && <p className="text-sm text-red-500 mb-3">{errorMsg}</p>}
         <button
           onClick={handleSave}

@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { checkPassword } from '@/lib/auth';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const password = req.nextUrl.searchParams.get('password');
+  if (!checkPassword(password ?? undefined)) {
+    return NextResponse.json({ error: 'パスワードが違います' }, { status: 401 });
+  }
   const db = getDb();
   const masks = db.prepare('SELECT * FROM masks ORDER BY position').all();
   return NextResponse.json({ masks });
