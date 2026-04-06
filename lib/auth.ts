@@ -1,8 +1,8 @@
 export function checkPassword(password: string | undefined): boolean {
+  // プライベートモードでは入口で認証済みなので内部パスワード不要
+  if (process.env.PRIVATE_MODE === 'true') return true;
+
   const adminPassword = process.env.ADMIN_PASSWORD;
-  if (!adminPassword) {
-    // 環境変数未設定の場合は拒否（安全側に倒す）
-    return false;
-  }
+  if (!adminPassword) return false;
   return password === adminPassword;
 }
