@@ -5,7 +5,6 @@ import { applyMasks } from '@/lib/masks';
 import MaskedChatLog from '@/components/MaskedChatLog';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import DeleteButton from '@/components/DeleteButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,17 +40,14 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
         </Link>
       </div>
 
-      <div className="mb-6 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold text-gray-900">{fullPost.title}</h1>
-          <div className="mt-1 flex items-center gap-2 text-xs text-gray-400">
-            <span className="bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
-              {fullPost.model_name}
-            </span>
-            <span>{formatDate(post.created_at)}</span>
-          </div>
+      <div className="mb-6">
+        <h1 className="text-xl font-semibold text-slate-800">{fullPost.title}</h1>
+        <div className="mt-1 flex items-center gap-2 text-xs text-slate-400">
+          <span className="bg-slate-200 text-slate-500 px-2 py-0.5 rounded-full">
+            {fullPost.model_name}
+          </span>
+          <span>{formatDate(post.created_at)}</span>
         </div>
-        <DeleteButton postId={post.id} />
       </div>
 
       <div className="border-t border-gray-100 pt-6">
