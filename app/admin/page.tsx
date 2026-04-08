@@ -25,6 +25,12 @@ export default function AdminPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-semibold text-slate-700">投稿一覧</h1>
         <div className="flex items-center gap-2">
+          <Link
+            href="/viewer"
+            className="text-sm border border-slate-300 text-slate-500 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+          >
+            ビューアー
+          </Link>
           <ExportButton />
           <Link
             href="/posts/new"
