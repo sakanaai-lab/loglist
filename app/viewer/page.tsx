@@ -38,22 +38,41 @@ function parsePost(lines: string[]): Post | null {
     if (m) { modelName = m[1].trim(); date = m[2].trim(); }
   }
 
+  // Format: each message (user or AI) is followed by its own ---
+  // > user msg\n\n---\n\n(empty)\nAI msg\n\n---\n\n> next user...
   const rounds: Round[] = [];
   let i = 2;
   while (i < lines.length) {
+    // skip blank lines and stray ---
     if (lines[i].trim() === '' || lines[i].trim() === '---') { i++; continue; }
+
     if (lines[i].startsWith('> ')) {
+      // Collect user lines until ---
       const userLines: string[] = [];
-      while (i < lines.length && (lines[i].startsWith('> ') || (lines[i].trim() === '' && i + 1 < lines.length && lines[i + 1]?.startsWith('> ')))) {
-        userLines.push(lines[i].startsWith('> ') ? lines[i].replace(/^> /, '') : '');
+      while (i < lines.length && lines[i].trim() !== '---') {
+        if (lines[i].startsWith('> ')) {
+          userLines.push(lines[i].replace(/^> /, ''));
+        } else if (lines[i].trim() !== '') {
+          userLines.push(lines[i]);
+        }
         i++;
       }
+      if (i < lines.length && lines[i].trim() === '---') i++; // skip ---
+
+      // Skip blank lines before AI content
       while (i < lines.length && lines[i].trim() === '') i++;
+
+      // Collect AI lines until next ---
       const aiLines: string[] = [];
-      while (i < lines.length && lines[i].trim() !== '---') { aiLines.push(lines[i]); i++; }
-      if (i < lines.length && lines[i].trim() === '---') i++;
+      while (i < lines.length && lines[i].trim() !== '---') {
+        aiLines.push(lines[i]);
+        i++;
+      }
+      if (i < lines.length && lines[i].trim() === '---') i++; // skip ---
+
       while (aiLines.length && aiLines[aiLines.length - 1].trim() === '') aiLines.pop();
       while (aiLines.length && aiLines[0].trim() === '') aiLines.shift();
+
       const userText = userLines.join('\n').trim();
       const aiText = aiLines.join('\n').trim();
       if (userText || aiText) rounds.push({ user: userText, ai: aiText });
