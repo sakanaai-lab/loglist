@@ -4,6 +4,7 @@ import type { MaskRule } from '@/lib/masks';
 import { applyMasks } from '@/lib/masks';
 import Link from 'next/link';
 import AdminDeleteButton from '@/components/AdminDeleteButton';
+import ExportButton from '@/components/ExportButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,12 +24,15 @@ export default function AdminPage() {
     <div className="max-w-2xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-semibold text-slate-700">投稿一覧</h1>
-        <Link
-          href="/posts/new"
-          className="bg-slate-600 text-white text-sm px-4 py-1.5 rounded-full hover:bg-slate-700 transition-colors"
-        >
-          ＋ 投稿する
-        </Link>
+        <div className="flex items-center gap-2">
+          <ExportButton />
+          <Link
+            href="/posts/new"
+            className="bg-slate-600 text-white text-sm px-4 py-1.5 rounded-full hover:bg-slate-700 transition-colors"
+          >
+            ＋ 投稿する
+          </Link>
+        </div>
       </div>
 
       {posts.length === 0 ? (
