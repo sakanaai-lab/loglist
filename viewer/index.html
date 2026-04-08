@@ -328,43 +328,42 @@
     }
 
     // Parse messages
-    // Each message pair: user lines start with "> ", then empty line, then AI content, then "---"
+    // Format: each message (user or AI) is followed by its own ---
+    // > user msg\n\n---\n\n(empty)\nAI msg\n\n---\n\n> next user...
     const rounds = [];
     let i = 2;
     while (i < lines.length) {
-      // Skip empty lines and separator lines between posts
+      // Skip empty lines and stray ---
       if (lines[i].trim() === '' || lines[i].trim() === '---') {
         i++;
         continue;
       }
 
-      // Collect user lines (start with "> ")
       if (lines[i].startsWith('> ')) {
+        // Collect user lines until ---
         const userLines = [];
-        while (i < lines.length && (lines[i].startsWith('> ') || (lines[i].trim() === '' && i + 1 < lines.length && lines[i + 1].startsWith('> ')))) {
+        while (i < lines.length && lines[i].trim() !== '---') {
           if (lines[i].startsWith('> ')) {
             userLines.push(lines[i].replace(/^> /, ''));
-          } else {
-            userLines.push('');
+          } else if (lines[i].trim() !== '') {
+            userLines.push(lines[i]);
           }
           i++;
         }
+        if (i < lines.length && lines[i].trim() === '---') i++; // skip ---
 
-        // Skip empty lines
+        // Skip empty lines before AI
         while (i < lines.length && lines[i].trim() === '') i++;
 
-        // Collect AI lines until "---"
+        // Collect AI lines until next ---
         const aiLines = [];
         while (i < lines.length && lines[i].trim() !== '---') {
           aiLines.push(lines[i]);
           i++;
         }
-        // skip "---"
-        if (i < lines.length && lines[i].trim() === '---') i++;
+        if (i < lines.length && lines[i].trim() === '---') i++; // skip ---
 
-        // Trim trailing empty lines from AI
         while (aiLines.length && aiLines[aiLines.length - 1].trim() === '') aiLines.pop();
-        // Trim leading empty lines
         while (aiLines.length && aiLines[0].trim() === '') aiLines.shift();
 
         const userText = userLines.join('\n').trim();
