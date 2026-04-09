@@ -6,12 +6,14 @@ import PostCard from '@/components/PostCard';
 
 export const dynamic = 'force-dynamic';
 
-export default function HomePage() {
+export default async function HomePage() {
   const db = getDb();
-  const posts = db
-    .prepare('SELECT id, title, model_name, created_at FROM posts ORDER BY created_at DESC')
-    .all() as Post[];
-  const masks = db.prepare('SELECT * FROM masks ORDER BY position').all() as MaskRule[];
+  
+  const postsResult = await db.execute('SELECT id, title, model_name, created_at FROM posts ORDER BY created_at DESC');
+  const posts = postsResult.rows as unknown as Post[];
+  
+  const masksResult = await db.execute('SELECT * FROM masks ORDER BY position');
+  const masks = masksResult.rows as unknown as MaskRule[];
 
   const maskedPosts = posts.map((p) => ({
     ...p,
