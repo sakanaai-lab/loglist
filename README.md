@@ -4,7 +4,7 @@ LLMとのチャットログを保存・公開できるブログ風サイトで�
 
 - 訪問者はログを読むだけ（読み取り専用）
 - 管理者はパスワードで投稿・削除・名前マスキングができる
-- SQLiteでデータを保存、Railwayで無料〜低コストで公開できる
+- Turso（クラウドSQLite）でデータを保存、Vercelで完全無料で公開できる
 
 **[ログビューアー（エクスポートしたファイルをブラウザで見る）](https://sakanaai-lab.github.io/loglist/viewer/)**
 
@@ -21,70 +21,86 @@ LLMとのチャットログを保存・公開できるブログ風サイトで�
 
 ---
 
-## Railwayにデプロイする手順
+## Vercel + Turso にデプロイする手順
 
 > **必要なもの**
 > - [GitHub](https://github.com) アカウント
-> - [Railway](https://railway.app) アカウント（GitHubでログインできます）
+> - [Turso](https://turso.tech) アカウント（GitHubでログインできます）
+> - [Vercel](https://vercel.com) アカウント（GitHubでログインできます）
+>
+> **費用：すべて無料枠で運用できます**
 
 ---
 
 ### ステップ1：このリポジトリをフォークする
 
-このページ右上の **Fork** ボタンを押します。  
-「Create fork」を押すと、自分のGitHubアカウントに `あなたのユーザー名/loglist` としてコピーされます。
+1. このページ右上の **Fork** ボタンを押す
+2. 「Create fork」を押すと、自分のGitHubアカウントに `あなたのユーザー名/loglist` としてコピーされる
 
 ---
 
-### ステップ2：Railwayにデプロイする
+### ステップ2：Tursoでデータベースを作成する
 
-1. [railway.app](https://railway.app) を開き、**GitHubアカウントでログイン**する
-2. ダッシュボードの **New Project** を押す
-3. 出てくるメニューから **Deploy from GitHub repo** を選ぶ
-4. リポジトリの一覧が出るので `あなたのユーザー名/loglist` を選ぶ
-   - 出てこない場合は「Configure GitHub App」を押してリポジトリへのアクセスを許可する
-5. **Deploy Now** を押す
-
-しばらく待つとデプロイが始まります（2〜3分かかります）。
+1. [turso.tech](https://turso.tech) を開き、GitHubアカウントでログインする
+2. ダッシュボードの **Create Database** を押す
+3. データベース名を `loglist` にする（好きな名前でもOK）
+4. リージョン（サーバーの場所）は **東京（ap-northeast-1）** など近い場所を選ぶ
+5. 作成されたら、データベースをクリックして開く
 
 ---
 
-### ステップ3：データ保存用のVolumeを追加する
+### ステップ3：Tursoにテーブルを作成する
 
-> ⚠️ これをやらないとサーバーが再起動するたびにログが消えます。必ずやってください。
+1. データベースの画面で **Edit Data** タブを開く
+2. 左側の **SQL console** をクリックする
+3. 以下のSQL文を **1つずつ** 貼り付けて、**Run（Ctrl+Enter）** で実行する
 
-1. Railwayのプロジェクト画面を開く
-2. 画面に表示されているサービス（`loglist` などの名前のカード）を**クリック**する
-3. 右側にパネルが開くので、上部のタブから **Volumes** を選ぶ
-4. **Add Volume** を押す
-5. 設定画面が出るので以下のように入力する：
-   - **Mount Path**: `/app/data`  ← これだけ入力すればOK
-6. **Add** または **Save** を押す
+**1つ目：**
+```sql
+CREATE TABLE IF NOT EXISTS posts (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, model_name TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT (datetime('now')));
+```
 
-> ⚠️ よくある間違い：「New Service」や「Add Service」から追加しないこと。Volumeは**サービスの中のVolumesタブ**から追加します。
+**2つ目：**
+```sql
+CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY AUTOINCREMENT, post_id INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE, role TEXT NOT NULL CHECK(role IN ('user','ai')), content TEXT NOT NULL, position INTEGER NOT NULL);
+```
 
----
+**3つ目：**
+```sql
+CREATE TABLE IF NOT EXISTS masks (id INTEGER PRIMARY KEY AUTOINCREMENT, from_text TEXT NOT NULL, to_text TEXT NOT NULL, position INTEGER NOT NULL DEFAULT 0);
+```
 
-### ステップ4：環境変数（パスワード）を設定する
-
-1. サービスのパネルで **Variables** タブを選ぶ
-2. **New Variable** を押す
-3. 左側の欄に `ADMIN_PASSWORD`、右側の欄に**好きなパスワード**を入力する
-   - `${{ secret() }}` などと書いてある場合は全部消してパスワードを直接入力する
-4. **Add** を押して保存する
-5. 画面上部に「Deploy」ボタンが出たら押す（設定を反映させるため）
-
-> ℹ️ このパスワードは投稿・削除・マスキング設定のときに使います。サイトの閲覧には不要です。
+右側のパネルに `posts`、`messages`、`masks` の3つが表示されればOKです。
 
 ---
 
-### ステップ5：公開URLを発行する
+### ステップ4：TursoのURLとトークンをメモする
 
-1. サービスのパネルで **Settings** タブを選ぶ
-2. 「Networking」セクションを探す
-3. **Generate Domain** を押す
-4. `ランダムな文字列.railway.app` というURLが発行される
-5. そのURLをブラウザで開いてサイトが表示されればOK！
+1. データベースの **Overview** タブを開く
+2. **Database URL**（`libsql://...` で始まる文字列）をコピーしてメモする
+3. 画面のどこかに **Create Token** や **Generate Token** ボタンがあるので押す
+4. 生成されたトークン（`eyJ...` で始まる長い文字列）をコピーしてメモする
+
+> ⚠️ トークンは一度しか表示されない場合があります。必ずどこかにメモしてください。
+
+---
+
+### ステップ5：Vercelにデプロイする
+
+1. [vercel.com](https://vercel.com) を開き、GitHubアカウントでログインする
+2. ダッシュボードの **Add New... → Project** を押す
+3. GitHubリポジトリの一覧から **`あなたのユーザー名/loglist`** を選び、**Import** を押す
+4. 「Configure Project」画面で **Environment Variables** を開く
+5. 以下の3つを1つずつ入力して追加する：
+
+| Name（左の欄） | Value（右の欄） |
+|---|---|
+| `TURSO_DATABASE_URL` | ステップ4でメモした `libsql://...` のURL |
+| `TURSO_AUTH_TOKEN` | ステップ4でメモしたトークン |
+| `ADMIN_PASSWORD` | 好きなパスワード（投稿・削除に使う） |
+
+6. 一番下の **Deploy** ボタンを押す
+7. 1〜2分待って「Congratulations!」と表示されれば完了！
 
 ---
 
@@ -92,9 +108,9 @@ LLMとのチャットログを保存・公開できるブログ風サイトで�
 
 | 確認すること | 手順 |
 |---|---|
-| トップページが開く | 発行されたURLにアクセス |
+| トップページが開く | Vercelが発行したURL（`あなたのプロジェクト名.vercel.app`）にアクセス |
+| 投稿できる | 右上の「＋投稿する」から、ADMIN_PASSWORDを入力して投稿 |
 | 管理ページが開く | URL + `/admin` にアクセス |
-| 投稿できる | `/admin` の「＋投稿する」から、ADMIN_PASSWORDを入力して投稿 |
 
 ---
 
@@ -112,8 +128,8 @@ LLMとのチャットログを保存・公開できるブログ風サイトで�
 
 ## プライベートモード（オプション）
 
-サイト全体にパスワードをかけて、自分だけが見られる非公開サイトにできます。  
-別のRailwayサービスとして同じリポジトリをデプロイし、以下の環境変数を追加します：
+サイト全体にパスワードをかけて、自分だけが見られる非公開サイトにできます。
+Vercelの環境変数に以下を追加し、Redeployしてください：
 
 | 変数名 | 値 |
 |--------|-----|
@@ -125,13 +141,34 @@ LLMとのチャットログを保存・公開できるブログ風サイトで�
 
 ---
 
+## 環境変数の変更を反映する
+
+Vercelの環境変数を変更した場合は、必ず **Redeploy（再デプロイ）** が必要です：
+
+1. Vercelダッシュボード → **Deployments** タブ
+2. 一番上の行の右端 **…** → **Redeploy** を選択
+3. 緑色の「Ready」になるまで待つ
+
+---
+
 ## ローカルで動かす（開発者向け）
 
 ```bash
 git clone https://github.com/あなたのユーザー名/loglist.git
 cd loglist
 npm install
-ADMIN_PASSWORD=password npm run dev
+```
+
+`.env.local` ファイルをプロジェクトのルートに作成し、以下を記述：
+
+```
+TURSO_DATABASE_URL=libsql://あなたのデータベースURL
+TURSO_AUTH_TOKEN=あなたのトークン
+ADMIN_PASSWORD=password
+```
+
+```bash
+npm run dev
 ```
 
 `http://localhost:3000` を開くと動きます。
@@ -142,5 +179,5 @@ ADMIN_PASSWORD=password npm run dev
 
 - [Next.js](https://nextjs.org) (App Router)
 - [Tailwind CSS](https://tailwindcss.com)
-- [SQLite](https://www.sqlite.org) via [better-sqlite3](https://github.com/WiseLibs/better-sqlite3)
-- [Railway](https://railway.app) でホスティング
+- [Turso](https://turso.tech) (libSQL) − クラウドSQLiteデータベース
+- [Vercel](https://vercel.com) − ホスティング（無料）
