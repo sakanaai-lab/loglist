@@ -16,14 +16,16 @@ function formatDate(dateStr: string) {
 export default async function PostPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const db = getDb();
-  const post = db.prepare('SELECT * FROM posts WHERE id = ?').get(Number(id)) as PostWithMessages | undefined;
+  
+  const postResult = await db.execute({ sql: 'SELECT * FROM posts WHERE id = ?', args: [Number(id)] });
+  const post = postResult.rows[0] as unknown as PostWithMessages | undefined;
   if (!post) notFound();
 
-  const messages = db
-    .prepare('SELECT * FROM messages WHERE post_id = ? ORDER BY position')
-    .all(Number(id)) as PostWithMessages['messages'];
+  const messagesResult = await db.execute({ sql: 'SELECT * FROM messages WHERE post_id = ? ORDER BY position', args: [Number(id)] });
+  const messages = messagesResult.rows as unknown as PostWithMessages['messages'];
 
-  const masks = db.prepare('SELECT * FROM masks ORDER BY position').all() as MaskRule[];
+  const masksResult = await db.execute('SELECT * FROM masks ORDER BY position');
+  const masks = masksResult.rows as unknown as MaskRule[];
 
   const fullPost: PostWithMessages = {
     ...post,
