@@ -34,19 +34,17 @@ function postToMarkdown(post: PostWithMessages): string {
 
 export async function GET() {
   const db = getDb();
-  const posts = db
-    .prepare('SELECT * FROM posts ORDER BY created_at DESC')
-    .all() as Post[];
-  const masks = db
-    .prepare('SELECT * FROM masks ORDER BY position')
-    .all() as MaskRule[];
+  const postsResult = await db.execute('SELECT * FROM posts ORDER BY created_at DESC');
+  const posts = postsResult.rows as unknown as Post[];
+  
+  const masksResult = await db.execute('SELECT * FROM masks ORDER BY position');
+  const masks = masksResult.rows as unknown as MaskRule[];
 
   const sections: string[] = [];
 
   for (const post of posts) {
-    const messages = db
-      .prepare('SELECT * FROM messages WHERE post_id = ? ORDER BY position')
-      .all(post.id) as Message[];
+    const messagesResult = await db.execute({ sql: 'SELECT * FROM messages WHERE post_id = ? ORDER BY position', args: [post.id] });
+    const messages = messagesResult.rows as unknown as Message[];
 
     const masked: PostWithMessages = {
       ...post,
