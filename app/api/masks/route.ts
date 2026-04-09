@@ -8,8 +8,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'パスワードが違います' }, { status: 401 });
   }
   const db = getDb();
-  const masks = db.prepare('SELECT * FROM masks ORDER BY position').all();
-  return NextResponse.json({ masks });
+  const result = await db.execute('SELECT * FROM masks ORDER BY position');
+  return NextResponse.json({ masks: result.rows });
 }
 
 export async function POST(req: NextRequest) {
@@ -22,17 +22,12 @@ export async function POST(req: NextRequest) {
   const rules: Array<{ from_text: string; to_text: string }> = body.rules ?? [];
   const db = getDb();
 
-  db.transaction(() => {
-    db.prepare('DELETE FROM masks').run();
-    rules.forEach((rule, i) => {
-      db.prepare('INSERT INTO masks (from_text, to_text, position) VALUES (?, ?, ?)').run(
-        rule.from_text,
-        rule.to_text,
-        i
-      );
-    });
-  })();
+  await db.execute('DELETE FROM masks');
+  for (let i = 0; i < rules.length; i++) {
+    const rule = rules[i];
+    await db.execute({ sql: 'INSERT INTO masks (from_text, to_text, position) VALUES (?, ?, ?)', args: [rule.from_text, rule.to_text, i] });
+  }
 
-  const masks = db.prepare('SELECT * FROM masks ORDER BY position').all();
-  return NextResponse.json({ masks });
+  const result = await db.execute('SELECT * FROM masks ORDER BY position');
+  return NextResponse.json({ masks: result.rows });
 }

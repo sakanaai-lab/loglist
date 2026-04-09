@@ -5,10 +5,8 @@ import type { CreatePostPayload } from '@/lib/types';
 
 export async function GET() {
   const db = getDb();
-  const posts = db.prepare(
-    'SELECT id, title, model_name, created_at FROM posts ORDER BY created_at DESC'
-  ).all();
-  return NextResponse.json({ posts });
+  const result = await db.execute('SELECT id, title, model_name, created_at FROM posts ORDER BY created_at DESC');
+  return NextResponse.json({ posts: result.rows });
 }
 
 export async function POST(req: NextRequest) {
@@ -25,29 +23,27 @@ export async function POST(req: NextRequest) {
 
   const db = getDb();
 
-  const insertPost = db.prepare(
-    'INSERT INTO posts (title, model_name) VALUES (?, ?)'
-  );
-  const insertMessage = db.prepare(
-    'INSERT INTO messages (post_id, role, content, position) VALUES (?, ?, ?, ?)'
-  );
-
-  const transaction = db.transaction(() => {
-    const result = insertPost.run(title.trim(), model_name.trim());
-    const postId = result.lastInsertRowid as number;
-
-    rounds.forEach((round, i) => {
-      insertMessage.run(postId, 'user', round.user.trim(), i * 2);
-      insertMessage.run(postId, 'ai', round.ai.trim(), i * 2 + 1);
-    });
-
-    const post = db.prepare('SELECT * FROM posts WHERE id = ?').get(postId) as Record<string, unknown>;
-    const messages = db
-      .prepare('SELECT * FROM messages WHERE post_id = ? ORDER BY position')
-      .all(postId);
-    return { ...post, messages };
+  const insertPostResult = await db.execute({
+    sql: 'INSERT INTO posts (title, model_name) VALUES (?, ?)',
+    args: [title.trim(), model_name.trim()]
   });
+  const postId = Number(insertPostResult.lastInsertRowid!);
 
-  const post = transaction();
-  return NextResponse.json({ post }, { status: 201 });
+  for (let i = 0; i < rounds.length; i++) {
+    const round = rounds[i];
+    await db.execute({
+      sql: 'INSERT INTO messages (post_id, role, content, position) VALUES (?, ?, ?, ?)',
+      args: [postId, 'user', round.user.trim(), i * 2]
+    });
+    await db.execute({
+      sql: 'INSERT INTO messages (post_id, role, content, position) VALUES (?, ?, ?, ?)',
+      args: [postId, 'ai', round.ai.trim(), i * 2 + 1]
+    });
+  }
+
+  const postResult = await db.execute({ sql: 'SELECT * FROM posts WHERE id = ?', args: [postId] });
+  const postInfo = postResult.rows[0];
+  const msgResult = await db.execute({ sql: 'SELECT * FROM messages WHERE post_id = ? ORDER BY position', args: [postId] });
+  
+  return NextResponse.json({ post: { ...postInfo, messages: msgResult.rows } }, { status: 201 });
 }

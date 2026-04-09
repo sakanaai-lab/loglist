@@ -13,12 +13,13 @@ function formatDate(dateStr: string) {
   return d.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
-export default function AdminPage() {
+export default async function AdminPage() {
   const db = getDb();
-  const posts = db
-    .prepare('SELECT id, title, model_name, created_at FROM posts ORDER BY created_at DESC')
-    .all() as Post[];
-  const masks = db.prepare('SELECT * FROM masks ORDER BY position').all() as MaskRule[];
+  const postsResult = await db.execute('SELECT id, title, model_name, created_at FROM posts ORDER BY created_at DESC');
+  const posts = postsResult.rows as unknown as Post[];
+  
+  const masksResult = await db.execute('SELECT * FROM masks ORDER BY position');
+  const masks = masksResult.rows as unknown as MaskRule[];
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
