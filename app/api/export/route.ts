@@ -14,6 +14,9 @@ function postToMarkdown(post: PostWithMessages): string {
   const lines: string[] = [];
 
   lines.push(`# ${post.title}`);
+  if (post.description) {
+    lines.push(`> ${post.description}`);
+  }
   lines.push(`モデル: ${post.model_name}｜${formatDate(post.created_at)}`);
   lines.push('');
 
@@ -49,6 +52,7 @@ export async function GET() {
     const masked: PostWithMessages = {
       ...post,
       title: applyMasks(post.title, masks),
+      description: applyMasks(post.description || '', masks),
       model_name: applyMasks(post.model_name, masks),
       messages: messages.map((m) => ({ ...m, content: applyMasks(m.content, masks) })),
     };

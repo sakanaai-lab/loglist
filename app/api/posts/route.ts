@@ -5,13 +5,13 @@ import type { CreatePostPayload } from '@/lib/types';
 
 export async function GET() {
   const db = getDb();
-  const result = await db.execute('SELECT id, title, model_name, created_at FROM posts ORDER BY created_at DESC');
+  const result = await db.execute('SELECT id, title, description, model_name, created_at FROM posts ORDER BY created_at DESC');
   return NextResponse.json({ posts: result.rows });
 }
 
 export async function POST(req: NextRequest) {
   const body: CreatePostPayload & { password?: string } = await req.json();
-  const { title, model_name, rounds, password } = body;
+  const { title, description, model_name, rounds, password } = body;
 
   if (!checkPassword(password)) {
     return NextResponse.json({ error: 'パスワードが違います' }, { status: 401 });
@@ -24,8 +24,8 @@ export async function POST(req: NextRequest) {
   const db = getDb();
 
   const insertPostResult = await db.execute({
-    sql: 'INSERT INTO posts (title, model_name) VALUES (?, ?)',
-    args: [title.trim(), model_name.trim()]
+    sql: 'INSERT INTO posts (title, description, model_name) VALUES (?, ?, ?)',
+    args: [title.trim(), description?.trim() || '', model_name.trim()]
   });
   const postId = Number(insertPostResult.lastInsertRowid!);
 

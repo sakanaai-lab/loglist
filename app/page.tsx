@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 export default async function HomePage() {
   const db = getDb();
   
-  const postsResult = await db.execute('SELECT id, title, model_name, created_at FROM posts ORDER BY created_at DESC');
+  const postsResult = await db.execute('SELECT id, title, description, model_name, created_at FROM posts ORDER BY created_at DESC');
   const posts = postsResult.rows as unknown as Post[];
   
   const masksResult = await db.execute('SELECT * FROM masks ORDER BY position');
@@ -18,6 +18,7 @@ export default async function HomePage() {
   const maskedPosts = posts.map((p) => ({
     ...p,
     title: applyMasks(p.title, masks),
+    description: applyMasks(p.description || '', masks),
     model_name: applyMasks(p.model_name, masks),
   }));
 

@@ -57,7 +57,7 @@ LLMとのチャットログを保存・公開できるブログ風サイトで�
 
 **1つ目：**
 ```sql
-CREATE TABLE IF NOT EXISTS posts (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, model_name TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT (datetime('now')));
+CREATE TABLE IF NOT EXISTS posts (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, description TEXT NOT NULL DEFAULT '', model_name TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT (datetime('now')));
 ```
 
 **2つ目：**
@@ -71,6 +71,11 @@ CREATE TABLE IF NOT EXISTS masks (id INTEGER PRIMARY KEY AUTOINCREMENT, from_tex
 ```
 
 右側のパネルに `posts`、`messages`、`masks` の3つが表示されればOKです。
+
+> **既にデプロイ済みの方へ：** `description` カラムを追加するため、TursoのSQL consoleで以下を実行してください：
+> ```sql
+> ALTER TABLE posts ADD COLUMN description TEXT NOT NULL DEFAULT '';
+> ```
 
 ---
 

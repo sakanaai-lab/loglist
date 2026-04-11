@@ -25,6 +25,14 @@ export default function PostCard({ post }: { post: Post }) {
           }>
             {post.title}
           </h2>
+          {post.description && (
+            <p className={isPrivate
+              ? 'mt-0.5 text-sm text-gray-400 truncate'
+              : 'mt-0.5 text-sm text-slate-400 truncate'
+            }>
+              {post.description}
+            </p>
+          )}
           <div className={isPrivate
             ? 'mt-1 flex items-center gap-2 text-sm text-gray-500'
             : 'mt-1 flex items-center gap-2 text-sm text-slate-400'

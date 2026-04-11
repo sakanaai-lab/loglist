@@ -11,6 +11,7 @@ interface Round {
 export default function NewPostForm() {
   const router = useRouter();
   const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const [modelName, setModelName] = useState('');
   const [password, setPassword] = useState('');
   const [rounds, setRounds] = useState<Round[]>([{ user: '', ai: '' }]);
@@ -49,6 +50,7 @@ export default function NewPostForm() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: title.trim(),
+          description: description.trim(),
           model_name: modelName.trim(),
           rounds,
           password,
@@ -78,6 +80,17 @@ export default function NewPostForm() {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           className="w-full text-xl font-semibold border-0 border-b border-slate-200 pb-2 focus:outline-none focus:border-slate-400 placeholder-gray-300"
+        />
+      </div>
+
+      {/* Description */}
+      <div>
+        <input
+          type="text"
+          placeholder="一言コメント（オプション）"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          className="w-full text-sm border-0 border-b border-slate-200 pb-2 focus:outline-none focus:border-slate-400 placeholder-gray-300"
         />
       </div>
 

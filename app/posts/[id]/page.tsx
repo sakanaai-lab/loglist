@@ -30,6 +30,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
   const fullPost: PostWithMessages = {
     ...post,
     title: applyMasks(post.title, masks),
+    description: applyMasks(post.description || '', masks),
     model_name: applyMasks(post.model_name, masks),
     messages: messages.map((m) => ({ ...m, content: applyMasks(m.content, masks) })),
   };
@@ -44,6 +45,9 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
 
       <div className="mb-6">
         <h1 className="text-xl font-semibold text-slate-800">{fullPost.title}</h1>
+        {fullPost.description && (
+          <p className="mt-1 text-sm text-slate-500">{fullPost.description}</p>
+        )}
         <div className="mt-1 flex items-center gap-2 text-xs text-slate-400">
           <span className="bg-slate-200 text-slate-500 px-2 py-0.5 rounded-full">
             {fullPost.model_name}
