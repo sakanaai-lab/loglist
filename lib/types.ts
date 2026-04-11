@@ -9,6 +9,7 @@ export interface Message {
 export interface Post {
   id: number;
   title: string;
+  description: string;
   model_name: string;
   created_at: string;
 }
@@ -19,6 +20,7 @@ export interface PostWithMessages extends Post {
 
 export interface CreatePostPayload {
   title: string;
+  description: string;
   model_name: string;
   rounds: Array<{
     user: string;

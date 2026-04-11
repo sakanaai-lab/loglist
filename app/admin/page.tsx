@@ -15,7 +15,7 @@ function formatDate(dateStr: string) {
 
 export default async function AdminPage() {
   const db = getDb();
-  const postsResult = await db.execute('SELECT id, title, model_name, created_at FROM posts ORDER BY created_at DESC');
+  const postsResult = await db.execute('SELECT id, title, description, model_name, created_at FROM posts ORDER BY created_at DESC');
   const posts = postsResult.rows as unknown as Post[];
   
   const masksResult = await db.execute('SELECT * FROM masks ORDER BY position');
@@ -48,6 +48,7 @@ export default async function AdminPage() {
         <div>
           {posts.map((post) => {
             const title = applyMasks(post.title, masks);
+            const description = applyMasks(post.description || '', masks);
             const modelName = applyMasks(post.model_name, masks);
             return (
               <div
@@ -61,6 +62,9 @@ export default async function AdminPage() {
                   >
                     {title}
                   </Link>
+                  {description && (
+                    <p className="mt-0.5 text-sm text-slate-400 truncate">{description}</p>
+                  )}
                   <div className="mt-1 flex items-center gap-2 text-xs text-slate-400">
                     <span className="bg-slate-200 text-slate-500 px-2 py-0.5 rounded-full">
                       {modelName}
