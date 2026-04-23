@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 interface Rule {
   tempId: string;
@@ -13,30 +13,33 @@ function randomId() {
 }
 
 export default function MaskSettings() {
+  const [password, setPassword] = useState('');
   const [rules, setRules] = useState<Rule[]>([]);
-  const [status, setStatus] = useState<'loading' | 'idle' | 'saving' | 'saved' | 'error'>('loading');
+  const [unlocked, setUnlocked] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'loading' | 'saving' | 'saved' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
 
-  useEffect(() => {
-    async function load() {
-      const res = await fetch('/api/masks');
-      if (!res.ok) {
-        setErrorMsg('マスクの読み込みに失敗しました');
-        setStatus('error');
-        return;
-      }
-      const data = await res.json();
-      setRules(
-        data.masks.map((m: { from_text: string; to_text: string }) => ({
-          tempId: randomId(),
-          from_text: m.from_text,
-          to_text: m.to_text,
-        }))
-      );
-      setStatus('idle');
+  async function handleUnlock() {
+    if (!password) return;
+    setStatus('loading');
+    setErrorMsg('');
+    const res = await fetch(`/api/masks?password=${encodeURIComponent(password)}`);
+    if (res.status === 401) {
+      setErrorMsg('パスワードが違います');
+      setStatus('error');
+      return;
     }
-    load();
-  }, []);
+    const data = await res.json();
+    setRules(
+      data.masks.map((m: { from_text: string; to_text: string }) => ({
+        tempId: randomId(),
+        from_text: m.from_text,
+        to_text: m.to_text,
+      }))
+    );
+    setUnlocked(true);
+    setStatus('idle');
+  }
 
   function addRule() {
     setRules((prev) => [...prev, { tempId: randomId(), from_text: '', to_text: '' }]);
@@ -57,16 +60,12 @@ export default function MaskSettings() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        password,
         rules: rules.map(({ from_text, to_text }) => ({ from_text, to_text })),
       }),
     });
     if (res.status === 401) {
-      setErrorMsg('認証が必要です');
-      setStatus('error');
-      return;
-    }
-    if (!res.ok) {
-      setErrorMsg('保存に失敗しました');
+      setErrorMsg('パスワードが違います');
       setStatus('error');
       return;
     }
@@ -74,10 +73,31 @@ export default function MaskSettings() {
     setTimeout(() => setStatus('idle'), 2000);
   }
 
-  if (status === 'loading') {
-    return <p className="text-slate-400 text-sm py-4 text-center">読み込み中...</p>;
+  // パスワード入力画面
+  if (!unlocked) {
+    return (
+      <div className="space-y-3">
+        <input
+          type="password"
+          placeholder="管理者パスワード"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleUnlock()}
+          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-base focus:outline-none focus:border-slate-400"
+        />
+        {errorMsg && <p className="text-sm text-red-500">{errorMsg}</p>}
+        <button
+          onClick={handleUnlock}
+          disabled={status === 'loading'}
+          className="w-full bg-slate-700 text-white py-3 rounded-xl text-sm font-medium hover:bg-slate-800 disabled:opacity-50 transition-colors"
+        >
+          {status === 'loading' ? '確認中...' : '開く'}
+        </button>
+      </div>
+    );
   }
 
+  // ルール編集画面
   return (
     <div className="space-y-4">
       {rules.length === 0 && (

@@ -5,7 +5,6 @@ import { applyMasks } from '@/lib/masks';
 import Link from 'next/link';
 import AdminDeleteButton from '@/components/AdminDeleteButton';
 import ExportButton from '@/components/ExportButton';
-import LogoutButton from '@/components/LogoutButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -50,7 +49,7 @@ export default async function AdminPage() {
           {posts.map((post) => {
             const title = applyMasks(post.title, masks);
             const description = applyMasks(post.description || '', masks);
-            const modelName = post.model_name ? applyMasks(post.model_name, masks) : '';
+            const modelName = applyMasks(post.model_name, masks);
             return (
               <div
                 key={post.id}
@@ -67,32 +66,18 @@ export default async function AdminPage() {
                     <p className="mt-0.5 text-sm text-slate-400 truncate">{description}</p>
                   )}
                   <div className="mt-1 flex items-center gap-2 text-xs text-slate-400">
-                    {modelName && (
-                      <span className="bg-slate-200 text-slate-500 px-2 py-0.5 rounded-full">
-                        {modelName}
-                      </span>
-                    )}
+                    <span className="bg-slate-200 text-slate-500 px-2 py-0.5 rounded-full">
+                      {modelName}
+                    </span>
                     <span>{formatDate(post.created_at)}</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Link
-                    href={`/posts/${post.id}/edit`}
-                    className="text-xs px-3 py-1 rounded transition-colors text-slate-400 border border-slate-200 hover:border-slate-400 hover:text-slate-600"
-                  >
-                    編集
-                  </Link>
-                  <AdminDeleteButton postId={post.id} />
-                </div>
+                <AdminDeleteButton postId={post.id} />
               </div>
             );
           })}
         </div>
       )}
-
-      <div className="mt-8 pt-4 border-t border-slate-200">
-        <LogoutButton />
-      </div>
     </div>
   );
 }
