@@ -13,6 +13,7 @@ export default function NewPostForm() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [modelName, setModelName] = useState('');
+  const [password, setPassword] = useState('');
   const [rounds, setRounds] = useState<Round[]>([{ user: '', ai: '' }]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -34,6 +35,8 @@ export default function NewPostForm() {
     setError('');
 
     if (!title.trim()) return setError('タイトルを入力してください');
+    if (!modelName.trim()) return setError('モデル名を入力してください');
+    if (!password) return setError('パスワードを入力してください');
     for (let i = 0; i < rounds.length; i++) {
       if (!rounds[i].user.trim() || !rounds[i].ai.trim()) {
         return setError(`ラリー${i + 1}のメッセージが空です`);
@@ -50,10 +53,11 @@ export default function NewPostForm() {
           description: description.trim(),
           model_name: modelName.trim(),
           rounds,
+          password,
         }),
       });
       if (res.status === 401) {
-        setError('認証が必要です。ログインしてください。');
+        setError('パスワードが違います');
         setSubmitting(false);
         return;
       }
@@ -94,7 +98,7 @@ export default function NewPostForm() {
       <div>
         <input
           type="text"
-          placeholder="モデル名（例：GPT-4o, Claude 3.5）（オプション）"
+          placeholder="モデル名（例：GPT-4o, Claude 3.5）"
           value={modelName}
           onChange={(e) => setModelName(e.target.value)}
           className="w-full text-base border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-slate-400 placeholder-gray-300"
@@ -155,6 +159,17 @@ export default function NewPostForm() {
       >
         ＋ ラリーを追加
       </button>
+
+      {/* Password */}
+      <div className="border-t border-gray-100 pt-4">
+        <input
+          type="password"
+          placeholder="管理者パスワード"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full text-base border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-slate-400 placeholder-gray-300"
+        />
+      </div>
 
       {/* Error */}
       {error && <p className="text-sm text-red-500">{error}</p>}

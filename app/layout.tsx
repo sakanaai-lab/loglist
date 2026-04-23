@@ -31,15 +31,6 @@ export default function RootLayout({
             }>
               loglist {isPrivate && <span className="text-xs text-gray-400 ml-1">private</span>}
             </Link>
-            <Link
-              href="/admin"
-              className={isPrivate
-                ? 'text-xs text-gray-400 hover:text-gray-200 transition-colors'
-                : 'text-xs text-slate-400 hover:text-slate-600 transition-colors'
-              }
-            >
-              管理
-            </Link>
           </div>
         </header>
         <main className="max-w-2xl mx-auto px-4 py-8">{children}</main>
