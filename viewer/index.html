@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ログビューアー</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #f1f5f9;
+    color: #334155;
+    min-height: 100vh;
+  }
+
+  header {
+    background: #e2e8f0;
+    border-bottom: 1px solid #cbd5e1;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  header h1 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #475569;
+    flex: 1;
+  }
+
+  #back-btn {
+    display: none;
+    background: none;
+    border: 1px solid #94a3b8;
+    color: #64748b;
+    padding: 4px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+
+  #back-btn:hover { background: #e2e8f0; }
+
+  /* Drop zone */
+  #drop-zone {
+    max-width: 480px;
+    margin: 60px auto;
+    padding: 0 20px;
+    text-align: center;
+  }
+
+  #drop-area {
+    border: 2px dashed #94a3b8;
+    border-radius: 16px;
+    padding: 48px 24px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    background: #f8fafc;
+  }
+
+  #drop-area.drag-over {
+    background: #e0f2fe;
+    border-color: #38bdf8;
+  }
+
+  #drop-area .icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+  }
+
+  #drop-area p {
+    color: #64748b;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  #drop-area p strong {
+    color: #475569;
+  }
+
+  #file-input { display: none; }
+
+  #drop-hint {
+    margin-top: 12px;
+    font-size: 12px;
+    color: #94a3b8;
+  }
+
+  /* Post list */
+  #post-list {
+    display: none;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 16px 16px 40px;
+  }
+
+  .post-item {
+    border-bottom: 1px solid #e2e8f0;
+    padding: 14px 8px;
+    cursor: pointer;
+    transition: background 0.1s;
+    border-radius: 6px;
+  }
+
+  .post-item:hover { background: #e2e8f0; }
+
+  .post-item h2 {
+    font-size: 15px;
+    font-weight: 500;
+    color: #334155;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .post-meta {
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #94a3b8;
+  }
+
+  .model-badge {
+    background: #e2e8f0;
+    color: #64748b;
+    padding: 1px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+  }
+
+  .post-arrow {
+    color: #cbd5e1;
+    font-size: 14px;
+  }
+
+  .post-item-inner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .post-item-inner .post-text { flex: 1; min-width: 0; }
+
+  /* Detail view */
+  #post-detail {
+    display: none;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 16px 16px 60px;
+  }
+
+  .detail-header {
+    margin-bottom: 24px;
+  }
+
+  .detail-header h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1e293b;
+    line-height: 1.4;
+    margin-bottom: 6px;
+  }
+
+  .detail-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #94a3b8;
+  }
+
+  .message-pair {
+    margin-bottom: 20px;
+  }
+
+  .user-bubble {
+    background: #dbeafe;
+    border: 1px solid #bfdbfe;
+    color: #1e3a5f;
+    border-radius: 16px 16px 4px 16px;
+    padding: 10px 14px;
+    font-size: 14px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin-bottom: 12px;
+    max-width: 90%;
+    margin-left: auto;
+  }
+
+  .ai-message {
+    padding: 0 4px;
+  }
+
+  .ai-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #94a3b8;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .ai-content {
+    font-size: 14px;
+    color: #334155;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .ai-paren {
+    color: #94a3b8;
+    font-style: italic;
+  }
+
+  .msg-divider {
+    border: none;
+    border-top: 1px solid #e2e8f0;
+    margin: 16px 0;
+  }
+
+  /* Responsive */
+  @media (max-width: 480px) {
+    #drop-area { padding: 36px 16px; }
+    .detail-header h2 { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1 id="header-title">ログビューアー</h1>
+  <button id="back-btn" onclick="showList()">← 一覧に戻る</button>
+</header>
+
+<div id="drop-zone">
+  <div id="drop-area" onclick="document.getElementById('file-input').click()">
+    <div class="icon">📂</div>
+    <p><strong>エクスポートしたMDファイルをここに</strong></p>
+    <p>ドラッグ＆ドロップ または クリックして選択</p>
+  </div>
+  <p id="drop-hint">「エクスポート」ボタンでダウンロードしたファイルを読み込みます</p>
+  <input type="file" id="file-input" accept=".md,text/plain">
+</div>
+
+<div id="post-list"></div>
+<div id="post-detail"></div>
+
+<script>
+  let posts = [];
+
+  // File picker
+  const fileInput = document.getElementById('file-input');
+  fileInput.addEventListener('change', e => {
+    if (e.target.files[0]) loadFile(e.target.files[0]);
+  });
+
+  // Drag & drop
+  const dropArea = document.getElementById('drop-area');
+  dropArea.addEventListener('dragover', e => {
+    e.preventDefault();
+    dropArea.classList.add('drag-over');
+  });
+  dropArea.addEventListener('dragleave', () => dropArea.classList.remove('drag-over'));
+  dropArea.addEventListener('drop', e => {
+    e.preventDefault();
+    dropArea.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) loadFile(file);
+  });
+
+  function loadFile(file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const text = e.target.result;
+      posts = parseMarkdown(text);
+      showList();
+    };
+    reader.readAsText(file, 'utf-8');
+  }
+
+  // Parse exported markdown
+  function parseMarkdown(text) {
+    // Posts are separated by \n\n---\n\n but also messages within each post end with ---
+    // Strategy: split on lines starting with "# " to find post boundaries
+    const lines = text.split('\n');
+    const postStarts = [];
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].startsWith('# ')) {
+        postStarts.push(i);
+      }
+    }
+
+    const result = [];
+    for (let p = 0; p < postStarts.length; p++) {
+      const start = postStarts[p];
+      const end = p + 1 < postStarts.length ? postStarts[p + 1] : lines.length;
+      const postLines = lines.slice(start, end);
+      const parsed = parsePost(postLines);
+      if (parsed) result.push(parsed);
+    }
+    return result;
+  }
+
+  function parsePost(lines) {
+    if (!lines.length) return null;
+
+    const title = lines[0].replace(/^# /, '').trim();
+
+    // Second line: モデル: X｜date
+    let modelName = '';
+    let date = '';
+    if (lines[1]) {
+      const meta = lines[1];
+      const modelMatch = meta.match(/モデル:\s*(.+?)｜(.+)/);
+      if (modelMatch) {
+        modelName = modelMatch[1].trim();
+        date = modelMatch[2].trim();
+      }
+    }
+
+    // Parse messages
+    // Format: each message (user or AI) is followed by its own ---
+    // > user msg\n\n---\n\n(empty)\nAI msg\n\n---\n\n> next user...
+    const rounds = [];
+    let i = 2;
+    while (i < lines.length) {
+      // Skip empty lines and stray ---
+      if (lines[i].trim() === '' || lines[i].trim() === '---') {
+        i++;
+        continue;
+      }
+
+      if (lines[i].startsWith('> ')) {
+        // Collect user lines until ---
+        const userLines = [];
+        while (i < lines.length && lines[i].trim() !== '---') {
+          if (lines[i].startsWith('> ')) {
+            userLines.push(lines[i].replace(/^> /, ''));
+          } else if (lines[i].trim() !== '') {
+            userLines.push(lines[i]);
+          }
+          i++;
+        }
+        if (i < lines.length && lines[i].trim() === '---') i++; // skip ---
+
+        // Skip empty lines before AI
+        while (i < lines.length && lines[i].trim() === '') i++;
+
+        // Collect AI lines until next ---
+        const aiLines = [];
+        while (i < lines.length && lines[i].trim() !== '---') {
+          aiLines.push(lines[i]);
+          i++;
+        }
+        if (i < lines.length && lines[i].trim() === '---') i++; // skip ---
+
+        while (aiLines.length && aiLines[aiLines.length - 1].trim() === '') aiLines.pop();
+        while (aiLines.length && aiLines[0].trim() === '') aiLines.shift();
+
+        const userText = userLines.join('\n').trim();
+        const aiText = aiLines.join('\n').trim();
+
+        if (userText || aiText) {
+          rounds.push({ user: userText, ai: aiText });
+        }
+      } else {
+        i++;
+      }
+    }
+
+    return { title, modelName, date, rounds };
+  }
+
+  function showList() {
+    document.getElementById('drop-zone').style.display = 'none';
+    document.getElementById('post-detail').style.display = 'none';
+    document.getElementById('back-btn').style.display = 'none';
+
+    const listEl = document.getElementById('post-list');
+    listEl.style.display = 'block';
+    document.getElementById('header-title').textContent = `ログビューアー（${posts.length}件）`;
+
+    listEl.innerHTML = '';
+    if (posts.length === 0) {
+      listEl.innerHTML = '<p style="text-align:center;padding:40px;color:#94a3b8;">投稿が見つかりませんでした</p>';
+      return;
+    }
+
+    posts.forEach((post, idx) => {
+      const item = document.createElement('div');
+      item.className = 'post-item';
+      item.innerHTML = `
+        <div class="post-item-inner">
+          <div class="post-text">
+            <h2>${escHtml(post.title)}</h2>
+            <div class="post-meta">
+              <span class="model-badge">${escHtml(post.modelName)}</span>
+              <span>${escHtml(post.date)}</span>
+            </div>
+          </div>
+          <span class="post-arrow">→</span>
+        </div>
+      `;
+      item.addEventListener('click', () => showDetail(idx));
+      listEl.appendChild(item);
+    });
+  }
+
+  function showDetail(idx) {
+    const post = posts[idx];
+    document.getElementById('post-list').style.display = 'none';
+
+    const detailEl = document.getElementById('post-detail');
+    detailEl.style.display = 'block';
+    document.getElementById('back-btn').style.display = 'inline-block';
+    document.getElementById('header-title').textContent = post.title.length > 30 ? post.title.slice(0, 30) + '…' : post.title;
+
+    let html = `
+      <div class="detail-header">
+        <h2>${escHtml(post.title)}</h2>
+        <div class="detail-meta">
+          <span class="model-badge">${escHtml(post.modelName)}</span>
+          <span>${escHtml(post.date)}</span>
+        </div>
+      </div>
+    `;
+
+    post.rounds.forEach((round, i) => {
+      html += `<div class="message-pair">`;
+      if (round.user) {
+        html += `<div class="user-bubble">${escHtml(round.user)}</div>`;
+      }
+      if (round.ai) {
+        html += `
+          <div class="ai-message">
+            <div class="ai-label">${escHtml(post.modelName)}</div>
+            <div class="ai-content">${renderAi(round.ai)}</div>
+          </div>
+        `;
+      }
+      html += `</div>`;
+      if (i < post.rounds.length - 1) {
+        html += `<hr class="msg-divider">`;
+      }
+    });
+
+    detailEl.innerHTML = html;
+    window.scrollTo(0, 0);
+  }
+
+  function renderAi(text) {
+    // Split on parenthetical groups (...)
+    const parts = text.split(/(\([^)]*\))/g);
+    return parts.map(part => {
+      if (/^\([^)]*\)$/.test(part)) {
+        return `<span class="ai-paren">${escHtml(part)}</span>`;
+      }
+      return escHtml(part);
+    }).join('');
+  }
+
+  function escHtml(str) {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+</script>
+
+</body>
+</html>
