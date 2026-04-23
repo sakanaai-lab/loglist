@@ -27,3 +27,8 @@ CREATE TABLE IF NOT EXISTS masks (
 -- ▼ 既にテーブルが存在する古いバージョンからのマイグレーション用
 -- （初回セットアップ時は不要。実行してもエラーにはなりません）
 -- ALTER TABLE posts ADD COLUMN description TEXT NOT NULL DEFAULT '';
+
+-- ▼ model_name を任意項目に変更する場合（既存DBの場合）
+-- SQLiteではカラムのNOT NULL制約を直接変更できないが、
+-- デフォルト値として空文字列が入るので、アプリ側で空文字列を許容する形に変更済み。
+-- 新規セットアップの場合は model_name NOT NULL のまま（空文字列が入る）
