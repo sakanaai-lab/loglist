@@ -37,12 +37,14 @@ export default function PostCard({ post }: { post: Post }) {
             ? 'mt-1 flex items-center gap-2 text-sm text-gray-500'
             : 'mt-1 flex items-center gap-2 text-sm text-slate-400'
           }>
-            <span className={isPrivate
-              ? 'bg-gray-700 text-gray-400 px-2 py-0.5 rounded-full'
-              : 'bg-slate-200 text-slate-500 px-2 py-0.5 rounded-full'
-            }>
-              {post.model_name}
-            </span>
+            {post.model_name && (
+              <span className={isPrivate
+                ? 'bg-gray-700 text-gray-400 px-2 py-0.5 rounded-full'
+                : 'bg-slate-200 text-slate-500 px-2 py-0.5 rounded-full'
+              }>
+                {post.model_name}
+              </span>
+            )}
             <span>{formatDate(post.created_at)}</span>
           </div>
         </div>
