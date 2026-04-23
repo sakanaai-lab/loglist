@@ -5,6 +5,7 @@ import { applyMasks } from '@/lib/masks';
 import MaskedChatLog from '@/components/MaskedChatLog';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { isAuthenticated } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,9 +32,11 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
     ...post,
     title: applyMasks(post.title, masks),
     description: applyMasks(post.description || '', masks),
-    model_name: applyMasks(post.model_name, masks),
+    model_name: post.model_name ? applyMasks(post.model_name, masks) : '',
     messages: messages.map((m) => ({ ...m, content: applyMasks(m.content, masks) })),
   };
+
+  const authed = await isAuthenticated();
 
   return (
     <article>
@@ -44,14 +47,26 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       </div>
 
       <div className="mb-6">
-        <h1 className="text-xl font-semibold text-slate-800">{fullPost.title}</h1>
+        <div className="flex items-start justify-between gap-4">
+          <h1 className="text-xl font-semibold text-slate-800">{fullPost.title}</h1>
+          {authed && (
+            <Link
+              href={`/posts/${id}/edit`}
+              className="text-xs px-3 py-1 rounded transition-colors text-slate-400 border border-slate-200 hover:border-slate-400 hover:text-slate-600 whitespace-nowrap"
+            >
+              編集
+            </Link>
+          )}
+        </div>
         {fullPost.description && (
           <p className="mt-1 text-sm text-slate-500">{fullPost.description}</p>
         )}
         <div className="mt-1 flex items-center gap-2 text-xs text-slate-400">
-          <span className="bg-slate-200 text-slate-500 px-2 py-0.5 rounded-full">
-            {fullPost.model_name}
-          </span>
+          {fullPost.model_name && (
+            <span className="bg-slate-200 text-slate-500 px-2 py-0.5 rounded-full">
+              {fullPost.model_name}
+            </span>
+          )}
           <span>{formatDate(post.created_at)}</span>
         </div>
       </div>

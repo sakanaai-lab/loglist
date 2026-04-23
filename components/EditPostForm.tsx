@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface Round {
@@ -8,14 +8,59 @@ interface Round {
   ai: string;
 }
 
-export default function NewPostForm() {
+interface PostData {
+  id: number;
+  title: string;
+  description: string;
+  model_name: string;
+  messages: Array<{ role: 'user' | 'ai'; content: string; position: number }>;
+}
+
+export default function EditPostForm({ postId }: { postId: number }) {
   const router = useRouter();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [modelName, setModelName] = useState('');
   const [rounds, setRounds] = useState<Round[]>([{ user: '', ai: '' }]);
   const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    async function loadPost() {
+      const res = await fetch(`/api/posts/${postId}`);
+      if (!res.ok) {
+        setError('投稿の読み込みに失敗しました');
+        setLoading(false);
+        return;
+      }
+      const data = await res.json();
+      const post: PostData = data.post;
+      setTitle(post.title);
+      setDescription(post.description || '');
+      setModelName(post.model_name || '');
+
+      const msgs = post.messages.sort((a, b) => a.position - b.position);
+      const loadedRounds: Round[] = [];
+      let currentRound: Partial<Round> = {};
+      for (const msg of msgs) {
+        if (msg.role === 'user') {
+          currentRound = { user: msg.content };
+        } else if (msg.role === 'ai') {
+          currentRound.ai = msg.content;
+          loadedRounds.push({ user: currentRound.user || '', ai: currentRound.ai || '' });
+          currentRound = {};
+        }
+      }
+      if (currentRound.user) {
+        loadedRounds.push({ user: currentRound.user, ai: '' });
+      }
+
+      setRounds(loadedRounds.length > 0 ? loadedRounds : [{ user: '', ai: '' }]);
+      setLoading(false);
+    }
+    loadPost();
+  }, [postId]);
 
   function updateRound(index: number, field: 'user' | 'ai', value: string) {
     setRounds((prev) => prev.map((r, i) => (i === index ? { ...r, [field]: value } : r)));
@@ -42,8 +87,8 @@ export default function NewPostForm() {
 
     setSubmitting(true);
     try {
-      const res = await fetch('/api/posts', {
-        method: 'POST',
+      const res = await fetch(`/api/posts/${postId}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: title.trim(),
@@ -57,13 +102,17 @@ export default function NewPostForm() {
         setSubmitting(false);
         return;
       }
-      if (!res.ok) throw new Error('投稿に失敗しました');
-      const { post } = await res.json();
-      router.push(`/posts/${post.id}`);
+      if (!res.ok) throw new Error('更新に失敗しました');
+      router.push(`/posts/${postId}`);
+      router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : '投稿に失敗しました');
+      setError(err instanceof Error ? err.message : '更新に失敗しました');
       setSubmitting(false);
     }
+  }
+
+  if (loading) {
+    return <p className="text-slate-400 text-center py-8">読み込み中...</p>;
   }
 
   return (
@@ -102,13 +151,9 @@ export default function NewPostForm() {
         {rounds.map((round, i) => (
           <div key={i} className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                ラリー {i + 1}
-              </span>
+              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">ラリー {i + 1}</span>
               {rounds.length > 1 && (
-                <button type="button" onClick={() => removeRound(i)} className="text-xs text-red-400 hover:text-red-600">
-                  削除
-                </button>
+                <button type="button" onClick={() => removeRound(i)} className="text-xs text-red-400 hover:text-red-600">削除</button>
               )}
             </div>
             <div className="bg-slate-50 rounded-xl px-3 py-2">
@@ -150,7 +195,7 @@ export default function NewPostForm() {
         disabled={submitting}
         className="w-full bg-slate-700 text-white py-3 rounded-xl text-sm font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
-        {submitting ? '投稿中...' : '投稿する'}
+        {submitting ? '更新中...' : '更新する'}
       </button>
     </form>
   );
