@@ -35,8 +35,8 @@ export default function NewPostForm() {
 
     if (!title.trim()) return setError('タイトルを入力してください');
     for (let i = 0; i < rounds.length; i++) {
-      if (!rounds[i].user.trim() || !rounds[i].ai.trim()) {
-        return setError(`ラリー${i + 1}のメッセージが空です`);
+      if (!rounds[i].ai.trim()) {
+        return setError(`ラリー${i + 1}のAIの返答が空です`);
       }
     }
 
@@ -115,7 +115,7 @@ export default function NewPostForm() {
               <div className="text-xs text-slate-400 mb-1">あなた</div>
               <textarea
                 rows={3}
-                placeholder="ユーザーのメッセージ..."
+                placeholder="ユーザーのメッセージ...（オプション）"
                 value={round.user}
                 onChange={(e) => updateRound(i, 'user', e.target.value)}
                 className="w-full text-base bg-transparent focus:outline-none placeholder-gray-300 resize-none"
