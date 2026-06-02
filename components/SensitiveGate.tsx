@@ -14,7 +14,7 @@ export default function SensitiveGate({ children }: { children: ReactNode }) {
   return (
     <div className="my-8 rounded-lg border border-amber-300 bg-amber-50 p-6 text-center">
       <p className="text-sm font-medium text-amber-800">
-        この記事はセンシティブな内容（R18）を含みます。
+        この記事はセンシティブな内容を含みます。
       </p>
       <p className="mt-1 text-sm text-amber-700">表示しますか？</p>
       <div className="mt-4 flex items-center justify-center gap-3">
