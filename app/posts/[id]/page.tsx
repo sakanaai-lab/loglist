@@ -3,9 +3,11 @@ import type { PostWithMessages } from '@/lib/types';
 import type { MaskRule } from '@/lib/masks';
 import { applyMasks } from '@/lib/masks';
 import MaskedChatLog from '@/components/MaskedChatLog';
+import SensitiveGate from '@/components/SensitiveGate';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { isAuthenticated } from '@/lib/auth';
+import { isSensitive } from '@/lib/sensitive';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,6 +39,12 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
   };
 
   const authed = await isAuthenticated();
+
+  const sensitive = isSensitive(
+    post.title,
+    post.description,
+    ...messages.map((m) => m.content)
+  );
 
   return (
     <article>
@@ -72,7 +80,13 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       </div>
 
       <div className="border-t border-slate-200 pt-6">
-        <MaskedChatLog post={fullPost} />
+        {sensitive ? (
+          <SensitiveGate>
+            <MaskedChatLog post={fullPost} />
+          </SensitiveGate>
+        ) : (
+          <MaskedChatLog post={fullPost} />
+        )}
       </div>
 
       <div className="mt-10 pt-6 border-t border-slate-200">

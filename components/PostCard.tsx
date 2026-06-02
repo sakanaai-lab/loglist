@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { Post } from '@/lib/types';
+import { isSensitive } from '@/lib/sensitive';
 
 const isPrivate = process.env.PRIVATE_MODE === 'true';
 
@@ -9,6 +10,7 @@ function formatDate(dateStr: string) {
 }
 
 export default function PostCard({ post }: { post: Post }) {
+  const sensitive = isSensitive(post.title, post.description);
   return (
     <Link
       href={`/posts/${post.id}`}
@@ -23,6 +25,11 @@ export default function PostCard({ post }: { post: Post }) {
             ? 'font-medium text-lg text-gray-100 group-hover:text-white truncate'
             : 'font-medium text-lg text-slate-700 group-hover:text-slate-900 truncate'
           }>
+            {sensitive && (
+              <span className="mr-2 align-middle text-xs font-semibold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">
+                R18
+              </span>
+            )}
             {post.title}
           </h2>
           {post.description && (
