@@ -27,7 +27,7 @@ export default function PostCard({ post }: { post: Post }) {
           }>
             {sensitive && (
               <span className="mr-2 align-middle text-xs font-semibold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">
-                R18
+                センシティブ
               </span>
             )}
             {post.title}
