@@ -21,8 +21,9 @@ LLMとのチャットログを保存・公開できるブログ風サイトで�
 
 ## 機能
 
-- チャットログの投稿・編集（モデル名・複数ラウンド対応）
+- チャットログの投稿・編集（モデル名・複数ラウンド・任意の推論欄に対応）
 - ユーザー／AI の吹き出し表示
+- 推論を雲形のパネルで表示
 - 名前マスキング（本名→ニックネームに自動置換）
 - ログ一括エクスポート（Markdownファイル）
 - 検索エンジンブロック（robots.txt）
@@ -64,6 +65,8 @@ LLMとのチャットログを保存・公開できるブログ風サイトで�
 3. このリポジトリの [`setup.sql`](./setup.sql) の内容を**まるごとコピー**して貼り付け、**Run（Ctrl+Enter）** で実行する
 
 右側のパネルに `posts`、`messages`、`masks` の3つが表示されればOKです。
+
+> すでに loglist を利用中で、今回アップデートする場合は `setup.sql` ではなく、後述の[既存サイトを更新する手順](#既存サイトを更新する手順)も確認してください。
 
 ---
 
@@ -122,6 +125,28 @@ LLMとのチャットログを保存・公開できるブログ風サイトで�
 
 ---
 
+## 既存サイトを更新する手順
+
+推論欄がないバージョンから更新するときは、**Vercelを再デプロイする前に**Tursoへ新しいカラムを追加します。既存のログは削除されません。
+
+1. Tursoダッシュボードで、loglistが使用しているデータベースを開く
+2. **Edit Data → SQL console** を開く
+3. [`migrations/001_add_message_reasoning.sql`](./migrations/001_add_message_reasoning.sql) の内容を貼り付ける
+4. **Run（Ctrl+Enter）** を一度だけ押す
+5. Vercelダッシュボードで対象プロジェクトを開く
+6. **Deployments** から最新コミットをデプロイまたはRedeployする
+7. 管理画面の「＋ 投稿する」を開き、各ラリーに「推論（オプション）」が表示されることを確認する
+
+実行するSQLは次の1行です。
+
+```sql
+ALTER TABLE messages ADD COLUMN reasoning TEXT NOT NULL DEFAULT '';
+```
+
+> **注意:** このSQLは同じデータベースに一度だけ実行してください。すでに追加済みの状態で再実行すると、`duplicate column name: reasoning` と表示されます。その場合は追加済みなので、次のVercelデプロイへ進んで構いません。
+
+---
+
 ## 環境変数の変更を反映する
 
 Vercelの環境変数を変更した場合は、必ず **Redeploy（再デプロイ）** が必要です：
@@ -176,10 +201,20 @@ Vercel ダッシュボード → プロジェクト → **Settings** → **Envir
 
 ### 投稿しようとしたら「Internal Server Error」になる
 
-**原因：Turso にテーブルが作られていない**
+**原因1：Turso にテーブルが作られていない**
 
 Turso の SQL console を開き、`setup.sql` の内容を実行してください。  
 右側のパネルに `posts`、`messages`、`masks` が表示されていれば正常です。
+
+**原因2：既存サイトに推論欄用のカラムが追加されていない**
+
+アップデート後から投稿・編集だけが失敗する場合は、TursoのSQL consoleで次を一度だけ実行してください。
+
+```sql
+ALTER TABLE messages ADD COLUMN reasoning TEXT NOT NULL DEFAULT '';
+```
+
+実行後、Vercelの **Deployments → … → Redeploy** を行ってください。
 
 ---
 
