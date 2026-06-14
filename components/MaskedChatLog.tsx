@@ -11,7 +11,7 @@ export default function MaskedChatLog({ post }: { post: PostWithMessages }) {
         msg.role === 'user' ? (
           <UserBubble key={msg.id} content={msg.content} />
         ) : (
-          <AiMessage key={msg.id} content={msg.content} modelName={post.model_name} />
+          <AiMessage key={msg.id} content={msg.content} reasoning={msg.reasoning} modelName={post.model_name} />
         )
       )}
     </div>

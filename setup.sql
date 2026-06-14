@@ -10,11 +10,12 @@ CREATE TABLE IF NOT EXISTS posts (
 );
 
 CREATE TABLE IF NOT EXISTS messages (
-  id       INTEGER PRIMARY KEY AUTOINCREMENT,
-  post_id  INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
-  role     TEXT    NOT NULL CHECK(role IN ('user','ai')),
-  content  TEXT    NOT NULL,
-  position INTEGER NOT NULL
+  id        INTEGER PRIMARY KEY AUTOINCREMENT,
+  post_id   INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+  role      TEXT    NOT NULL CHECK(role IN ('user','ai')),
+  content   TEXT    NOT NULL,
+  reasoning TEXT    NOT NULL DEFAULT '',
+  position  INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS masks (
@@ -27,3 +28,4 @@ CREATE TABLE IF NOT EXISTS masks (
 -- ▼ 既にテーブルが存在する古いバージョンからのマイグレーション用
 -- （初回セットアップ時は不要。実行してもエラーにはなりません）
 -- ALTER TABLE posts ADD COLUMN description TEXT NOT NULL DEFAULT '';
+-- ALTER TABLE messages ADD COLUMN reasoning TEXT NOT NULL DEFAULT '';

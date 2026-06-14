@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 
 interface Round {
   user: string;
+  reasoning: string;
   ai: string;
 }
 
@@ -13,7 +14,7 @@ interface PostData {
   title: string;
   description: string;
   model_name: string;
-  messages: Array<{ role: 'user' | 'ai'; content: string; position: number }>;
+  messages: Array<{ role: 'user' | 'ai'; content: string; reasoning?: string; position: number }>;
 }
 
 export default function EditPostForm({ postId }: { postId: number }) {
@@ -21,7 +22,7 @@ export default function EditPostForm({ postId }: { postId: number }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [modelName, setModelName] = useState('');
-  const [rounds, setRounds] = useState<Round[]>([{ user: '', ai: '' }]);
+  const [rounds, setRounds] = useState<Round[]>([{ user: '', reasoning: '', ai: '' }]);
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -48,26 +49,30 @@ export default function EditPostForm({ postId }: { postId: number }) {
           currentRound = { user: msg.content };
         } else if (msg.role === 'ai') {
           currentRound.ai = msg.content;
-          loadedRounds.push({ user: currentRound.user || '', ai: currentRound.ai || '' });
+          loadedRounds.push({
+            user: currentRound.user || '',
+            reasoning: msg.reasoning || '',
+            ai: currentRound.ai || '',
+          });
           currentRound = {};
         }
       }
       if (currentRound.user) {
-        loadedRounds.push({ user: currentRound.user, ai: '' });
+        loadedRounds.push({ user: currentRound.user, reasoning: '', ai: '' });
       }
 
-      setRounds(loadedRounds.length > 0 ? loadedRounds : [{ user: '', ai: '' }]);
+      setRounds(loadedRounds.length > 0 ? loadedRounds : [{ user: '', reasoning: '', ai: '' }]);
       setLoading(false);
     }
     loadPost();
   }, [postId]);
 
-  function updateRound(index: number, field: 'user' | 'ai', value: string) {
+  function updateRound(index: number, field: keyof Round, value: string) {
     setRounds((prev) => prev.map((r, i) => (i === index ? { ...r, [field]: value } : r)));
   }
 
   function addRound() {
-    setRounds((prev) => [...prev, { user: '', ai: '' }]);
+    setRounds((prev) => [...prev, { user: '', reasoning: '', ai: '' }]);
   }
 
   function removeRound(index: number) {
@@ -165,6 +170,18 @@ export default function EditPostForm({ postId }: { postId: number }) {
                 onChange={(e) => updateRound(i, 'user', e.target.value)}
                 className="w-full text-base bg-transparent focus:outline-none placeholder-gray-300 resize-none"
               />
+            </div>
+            <div className="reasoning-cloud reasoning-cloud-input">
+              <div className="relative z-10">
+                <div className="text-xs font-semibold text-sky-500/80 mb-1">推論（オプション）</div>
+                <textarea
+                  rows={4}
+                  placeholder="AIが答えにたどり着くまでの考え方..."
+                  value={round.reasoning}
+                  onChange={(e) => updateRound(i, 'reasoning', e.target.value)}
+                  className="w-full text-sm text-slate-600 bg-transparent focus:outline-none placeholder-sky-300/70 resize-none"
+                />
+              </div>
             </div>
             <div className="border border-gray-100 rounded-xl px-3 py-2">
               <div className="text-xs text-slate-400 mb-1">AI</div>

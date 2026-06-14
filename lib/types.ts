@@ -3,6 +3,7 @@ export interface Message {
   post_id: number;
   role: 'user' | 'ai';
   content: string;
+  reasoning: string;
   position: number;
 }
 
@@ -24,6 +25,7 @@ export interface CreatePostPayload {
   model_name: string;
   rounds: Array<{
     user: string;
+    reasoning: string;
     ai: string;
   }>;
 }

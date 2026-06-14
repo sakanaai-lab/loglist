@@ -48,12 +48,12 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     for (let i = 0; i < rounds.length; i++) {
       const round = rounds[i];
       await db.execute({
-        sql: 'INSERT INTO messages (post_id, role, content, position) VALUES (?, ?, ?, ?)',
-        args: [Number(id), 'user', round.user.trim(), i * 2]
+        sql: 'INSERT INTO messages (post_id, role, content, reasoning, position) VALUES (?, ?, ?, ?, ?)',
+        args: [Number(id), 'user', round.user.trim(), '', i * 2]
       });
       await db.execute({
-        sql: 'INSERT INTO messages (post_id, role, content, position) VALUES (?, ?, ?, ?)',
-        args: [Number(id), 'ai', round.ai.trim(), i * 2 + 1]
+        sql: 'INSERT INTO messages (post_id, role, content, reasoning, position) VALUES (?, ?, ?, ?, ?)',
+        args: [Number(id), 'ai', round.ai.trim(), round.reasoning?.trim() || '', i * 2 + 1]
       });
     }
   }

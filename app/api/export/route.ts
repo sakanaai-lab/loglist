@@ -25,6 +25,11 @@ function postToMarkdown(post: PostWithMessages): string {
       lines.push(`> ${msg.content.replace(/\n/g, '\n> ')}`);
     } else {
       lines.push('');
+      if (msg.reasoning) {
+        lines.push(`> **推論**`);
+        lines.push(`> ${msg.reasoning.replace(/\n/g, '\n> ')}`);
+        lines.push('');
+      }
       lines.push(msg.content);
     }
     lines.push('');
@@ -54,7 +59,11 @@ export async function GET() {
       title: applyMasks(post.title, masks),
       description: applyMasks(post.description || '', masks),
       model_name: applyMasks(post.model_name, masks),
-      messages: messages.map((m) => ({ ...m, content: applyMasks(m.content, masks) })),
+      messages: messages.map((m) => ({
+        ...m,
+        content: applyMasks(m.content, masks),
+        reasoning: applyMasks(m.reasoning || '', masks),
+      })),
     };
 
     sections.push(postToMarkdown(masked));
