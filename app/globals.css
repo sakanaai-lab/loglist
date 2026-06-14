@@ -7,3 +7,48 @@ body {
 textarea {
   resize: vertical;
 }
+
+.reasoning-cloud {
+  position: relative;
+  isolation: isolate;
+  margin-inline: 0.5rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid rgb(186 230 253 / 0.75);
+  border-radius: 1.75rem;
+  background:
+    radial-gradient(circle at 12% 0%, rgb(255 255 255 / 0.95) 0 14%, transparent 15%),
+    radial-gradient(circle at 34% -8%, rgb(255 255 255 / 0.95) 0 20%, transparent 21%),
+    radial-gradient(circle at 61% -4%, rgb(255 255 255 / 0.95) 0 17%, transparent 18%),
+    radial-gradient(circle at 85% 2%, rgb(255 255 255 / 0.95) 0 13%, transparent 14%),
+    linear-gradient(145deg, rgb(240 249 255 / 0.96), rgb(248 250 252 / 0.96));
+  box-shadow: 0 10px 30px rgb(14 165 233 / 0.08), inset 0 1px 0 rgb(255 255 255 / 0.9);
+}
+
+.reasoning-cloud::before,
+.reasoning-cloud::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  border: 1px solid rgb(186 230 253 / 0.65);
+  background: rgb(240 249 255 / 0.96);
+  border-radius: 999px;
+}
+
+.reasoning-cloud::before {
+  width: 1.35rem;
+  height: 1.35rem;
+  left: -0.45rem;
+  bottom: 0.55rem;
+}
+
+.reasoning-cloud::after {
+  width: 0.7rem;
+  height: 0.7rem;
+  left: -0.85rem;
+  bottom: 0.1rem;
+}
+
+.reasoning-cloud-input {
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+}

@@ -28,12 +28,12 @@ export async function POST(req: NextRequest) {
   for (let i = 0; i < rounds.length; i++) {
     const round = rounds[i];
     await db.execute({
-      sql: 'INSERT INTO messages (post_id, role, content, position) VALUES (?, ?, ?, ?)',
-      args: [postId, 'user', round.user.trim(), i * 2]
+      sql: 'INSERT INTO messages (post_id, role, content, reasoning, position) VALUES (?, ?, ?, ?, ?)',
+      args: [postId, 'user', round.user.trim(), '', i * 2]
     });
     await db.execute({
-      sql: 'INSERT INTO messages (post_id, role, content, position) VALUES (?, ?, ?, ?)',
-      args: [postId, 'ai', round.ai.trim(), i * 2 + 1]
+      sql: 'INSERT INTO messages (post_id, role, content, reasoning, position) VALUES (?, ?, ?, ?, ?)',
+      args: [postId, 'ai', round.ai.trim(), round.reasoning?.trim() || '', i * 2 + 1]
     });
   }
 

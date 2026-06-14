@@ -35,7 +35,11 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
     title: applyMasks(post.title, masks),
     description: applyMasks(post.description || '', masks),
     model_name: post.model_name ? applyMasks(post.model_name, masks) : '',
-    messages: messages.map((m) => ({ ...m, content: applyMasks(m.content, masks) })),
+    messages: messages.map((m) => ({
+      ...m,
+      content: applyMasks(m.content, masks),
+      reasoning: applyMasks(m.reasoning || '', masks),
+    })),
   };
 
   const authed = await isAuthenticated();
@@ -43,7 +47,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
   const sensitive = isSensitive(
     post.title,
     post.description,
-    ...messages.map((m) => m.content)
+    ...messages.flatMap((m) => [m.content, m.reasoning || ''])
   );
 
   return (
