@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS masks (
   position  INTEGER NOT NULL DEFAULT 0
 );
 
--- ▼ 既にテーブルが存在する古いバージョンからのマイグレーション用
--- （初回セットアップ時は不要。実行してもエラーにはなりません）
+-- ▼ 既存のデータベースを更新する場合
+-- CREATE TABLE IF NOT EXISTS は既存テーブルへ列を追加しません。
+-- migrations/ 内のSQLを番号順に実行してください。
 -- ALTER TABLE posts ADD COLUMN description TEXT NOT NULL DEFAULT '';
--- ALTER TABLE messages ADD COLUMN reasoning TEXT NOT NULL DEFAULT '';
