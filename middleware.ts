@@ -4,7 +4,9 @@ import { isAuthenticatedFromRequest } from '@/lib/auth';
 const ADMIN_PATHS = ['/admin', '/posts/new', '/settings'];
 const ADMIN_API_METHODS: Record<string, string[]> = {
   '/api/posts': ['POST'],
-  '/api/masks': ['POST'],
+  // マスクの from_text は「隠したい元テキスト」そのものなので、
+  // 参照(GET)も管理者限定にする
+  '/api/masks': ['GET', 'POST'],
 };
 
 function isAdminApiRoute(pathname: string, method: string): boolean {
