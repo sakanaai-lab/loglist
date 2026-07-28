@@ -17,7 +17,7 @@ function isAdminApiRoute(pathname: string, method: string): boolean {
   return !!(allowed && allowed.includes(method));
 }
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const method = req.method;
 
@@ -30,7 +30,7 @@ export function middleware(req: NextRequest) {
   const isEditPage = /^\/posts\/\d+\/edit$/.test(pathname);
 
   if (isAdminPage || isAdminApi || isEditPage) {
-    if (!isAuthenticatedFromRequest(req)) {
+    if (!(await isAuthenticatedFromRequest(req))) {
       if (isAdminApi) {
         return NextResponse.json({ error: '認証が必要です' }, { status: 401 });
       }
