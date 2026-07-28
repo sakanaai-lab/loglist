@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyPassword, generateToken, SESSION_COOKIE_NAME } from '@/lib/auth';
+import { verifyPassword, createSessionToken, SESSION_COOKIE_NAME, SESSION_MAX_AGE } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
@@ -9,7 +9,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'パスワードが違います' }, { status: 401 });
   }
 
-  const token = generateToken(password);
+  const token = await createSessionToken();
+  if (!token) {
+    return NextResponse.json({ error: 'サーバー設定が不足しています' }, { status: 500 });
+  }
+
   const response = NextResponse.json({ ok: true });
 
   response.cookies.set(SESSION_COOKIE_NAME, token, {
@@ -17,7 +21,7 @@ export async function POST(req: NextRequest) {
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
-    maxAge: 60 * 60 * 24 * 30,
+    maxAge: SESSION_MAX_AGE,
   });
 
   return response;
